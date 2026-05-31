@@ -1,0 +1,485 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  password      String
+  fullName      String
+  profileImage  String?
+  bio           String?
+  isVerified    Boolean     @default(false)
+
+  userRoles      UserRole[]
+  learnerProfile LearnerProfile?
+  tutorProfile   TutorProfile?
+  lessons        Lesson[]
+  
+  learnerBookings Booking[] @relation("LearnerBookings")
+  tutorBookings   Booking[] @relation("TutorBookings")
+
+  tutorAssignments Assignment[] @relation("TutorAssignments")
+  learnerSubmissions Submission[] @relation("LearnerSubmissions")
+  tutorReviews       Review[] @relation("TutorReviews")
+  notifications      Notification[]
+  lessonViews        LessonView[]
+  progress           UserProgress[]
+
+  availabilities  Availability[]    @relation("TutorAvailability")
+  learningPaths   LearningPath[]
+  assessments     SkillAssessment[]
+  recommendations Recommendation[]
+  userBadges      UserBadge[]
+  achievements    UserAchievement[]
+  points          UserPoints?
+  payments        Payment[]
+  subscription    Subscription?
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Role {
+  id          String      @id @default(uuid())
+  name        RoleType    @unique
+
+  userRoles   UserRole[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Lesson {
+  id            String         @id @default(uuid())
+  title         String
+  description   String         @db.Text
+  contentUrl    String?        // URL to Video/PDF
+  contentType   ContentType    @default(TEXT)
+  difficulty    Difficulty     @default(BEGINNER)
+  isPremium     Boolean        @default(false)
+  
+  categoryId    String
+  category      LessonCategory @relation(fields: [categoryId], references: [id])
+  
+  tags          LessonTag[]    @relation("LessonToTag")
+  
+  tutorId       String
+  tutor         User           @relation(fields: [tutorId], references: [id])
+
+  assignments   Assignment[]
+  views         LessonView[]
+  learnerProgress UserProgress[]
+  recommendations Recommendation[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model Booking {
+  id              String        @id @default(uuid())
+  startTime       DateTime
+  endTime         DateTime
+  status          BookingStatus @default(SCHEDULED)
+  notes           String?       @db.Text
+  cancellationReason String?    @db.Text
+
+  learnerId       String
+  learner         User          @relation("LearnerBookings", fields: [learnerId], references: [id])
+  
+  tutorId         String
+  tutor           User          @relation("TutorBookings", fields: [tutorId], references: [id])
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([learnerId])
+  @@index([tutorId])
+  @@index([startTime])
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_CANCELLED
+  ASSIGNMENT_CREATED
+  SUBMISSION_REVIEWED
+  LESSON_ADDED
+  SYSTEM
+}
+
+model Notification {
+  id          String           @id @default(uuid())
+  title       String
+  message     String           @db.Text
+  type        NotificationType
+  isRead      Boolean          @default(false)
+  
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+model UserRole {
+  id        String    @id @default(uuid())
+
+  userId    String
+  roleId    String
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@unique([userId, roleId])
+}
+
+enum RoleType {
+  ADMIN
+  TUTOR
+  LEARNER
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LearnerProfile {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  interests      String?   @db.Text
+  learningGoals  String?   @db.Text
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model TutorProfile {
+  id             String    @id @default(uuid())
+  userId         String    @unique
+  expertise      String    @db.Text
+  qualification  String?   @db.Text
+  experience     Int?
+  hourlyRate     Float?
+  isAvailable    Boolean   @default(true)
+  verificationStatus VerificationStatus @default(PENDING)
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum ContentType {
+  VIDEO
+  PDF
+  TEXT
+}
+
+model LessonCategory {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?  @db.Text
+  lessons     Lesson[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model LessonTag {
+  id      String   @id @default(uuid())
+  name    String   @unique
+  lessons Lesson[] @relation("LessonToTag")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum BookingStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum SubmissionStatus {
+  PENDING
+  REVIEWED
+}
+
+model Assignment {
+  id          String       @id @default(uuid())
+  title       String
+  description String       @db.Text
+  fileUrl     String?      // Instructions file
+  dueDate     DateTime?
+  
+  lessonId    String?
+  lesson      Lesson?      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  tutorId     String
+  tutor       User         @relation("TutorAssignments", fields: [tutorId], references: [id])
+  
+  submissions Submission[]
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Submission {
+  id           String           @id @default(uuid())
+  fileUrl      String           // Learner's work
+  content      String?          @db.Text
+  status       SubmissionStatus @default(PENDING)
+  submittedAt  DateTime         @default(now())
+
+  assignmentId String
+  assignment   Assignment       @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  
+  learnerId    String
+  learner      User             @relation("LearnerSubmissions", fields: [learnerId], references: [id])
+  
+  review       Review?
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([assignmentId, learnerId]) // One submission per learner per assignment
+}
+
+model Review {
+  id           String     @id @default(uuid())
+  feedback     String     @db.Text
+  grade        String?
+  reviewedAt   DateTime   @default(now())
+
+  submissionId String     @unique
+  submission   Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  
+  tutorId      String
+  tutor       User       @relation("TutorReviews", fields: [tutorId], references: [id])
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model LessonView {
+  id        String   @id @default(uuid())
+  lessonId  String
+  lesson    Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt  DateTime @default(now())
+
+  @@index([lessonId])
+  @@index([userId])
+}
+
+model UserProgress {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId     String
+  lesson       Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  isCompleted  Boolean  @default(false)
+  completedAt  DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, lessonId])
+}
+
+model Availability {
+  id        String   @id @default(uuid())
+  dayOfWeek Int      // 0-6 (Sunday-Saturday)
+  startTime String   // e.g. "09:00"
+  endTime   String   // e.g. "17:00"
+  tutorId   String
+  tutor     User     @relation("TutorAvailability", fields: [tutorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tutorId])
+}
+
+model LearningPath {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  lessons     Json     // Array of lesson IDs or JSON metadata
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model SkillAssessment {
+  id        String   @id @default(uuid())
+  skills    Json     // Key-value pairs of skills and levels
+  score     Float
+  feedback  String?  @db.Text
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Recommendation {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  reason      String?  @db.Text
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId    String?
+  lesson      Lesson?  @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String      @db.Text
+  iconUrl     String
+  userBadges  UserBadge[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model UserBadge {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, badgeId])
+}
+
+model Achievement {
+  id               String            @id @default(uuid())
+  name             String            @unique
+  description      String            @db.Text
+  criteria         String            // Criteria rule description or condition
+  userAchievements UserAchievement[]
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+}
+
+model UserAchievement {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@unique([userId, achievementId])
+}
+
+model UserPoints {
+  id         String   @id @default(uuid())
+  points     Int      @default(0)
+  streak     Int      @default(0)
+  lastActive DateTime @default(now())
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String
+  purpose       String        // "LESSON_PURCHASE", "TUTOR_SESSION", "SUBSCRIPTION"
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lessonId      String?
+  bookingId     String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([userId])
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Subscription {
+  id        String             @id @default(uuid())
+  plan      SubscriptionPlan   @default(BASIC)
+  status    SubscriptionStatus @default(ACTIVE)
+  startDate DateTime           @default(now())
+  endDate   DateTime
+  userId    String             @unique
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+enum SubscriptionPlan {
+  BASIC
+  PREMIUM
+  PRO
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+
