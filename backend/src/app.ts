@@ -19,6 +19,7 @@ import aiRoutes from './routes/ai.routes';
 import gamificationRoutes from './routes/gamification.routes';
 import paymentRoutes from './routes/payment.routes';
 import subscriptionRoutes from './routes/subscription.routes';
+import adminRoutes from './routes/admin.routes';
 import { errorMiddleware } from './middlewares/error.middleware';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
@@ -51,6 +52,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Error handling
 app.use(errorMiddleware);

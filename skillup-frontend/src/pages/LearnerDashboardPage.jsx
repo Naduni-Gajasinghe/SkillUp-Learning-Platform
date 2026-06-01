@@ -15,7 +15,7 @@ export default function LearnerDashboardPage() {
     const load = async () => {
       try {
         setLoading(true);
-        const [statsData, pointsData, progressData, recommendationData, badgeData] = await Promise.all([
+        const [statsResult, pointsResult, progressResult, recommendationResult, badgeResult] = await Promise.allSettled([
           fetchLearnerStats(),
           fetchPoints(),
           fetchProgress(),
@@ -23,11 +23,11 @@ export default function LearnerDashboardPage() {
           fetchBadges(),
         ]);
 
-        setStats(statsData);
-        setPoints(pointsData);
-        setProgress(progressData);
-        setRecommendations(recommendationData);
-        setBadges(badgeData);
+        setStats(statsResult.status === 'fulfilled' ? statsResult.value : null);
+        setPoints(pointsResult.status === 'fulfilled' ? pointsResult.value : null);
+        setProgress(progressResult.status === 'fulfilled' ? progressResult.value : []);
+        setRecommendations(recommendationResult.status === 'fulfilled' ? recommendationResult.value : []);
+        setBadges(badgeResult.status === 'fulfilled' ? badgeResult.value : []);
       } finally {
         setLoading(false);
       }

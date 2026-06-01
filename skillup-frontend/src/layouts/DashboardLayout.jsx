@@ -22,12 +22,20 @@ const tutorLinks = [
   { to: '/tutor/analytics', label: 'Analytics' },
 ];
 
+const adminLinks = [
+  { to: '/admin/dashboard', label: 'Dashboard' },
+];
+
 export default function DashboardLayout({ role }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
-  const links = useMemo(() => (role === 'tutor' ? tutorLinks : learnerLinks), [role]);
+  const links = useMemo(() => {
+    if (role === 'tutor') return tutorLinks;
+    if (role === 'admin') return adminLinks;
+    return learnerLinks;
+  }, [role]);
 
   const onLogout = () => {
     dispatch(logout());

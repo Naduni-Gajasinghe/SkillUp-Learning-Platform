@@ -40,7 +40,7 @@ const paymentController = new PaymentController();
 router.post(
   '/',
   authenticate,
-  authorizeRoles(['LEARNER']),
+  authorizeRoles(['LEARNER', 'TUTOR', 'ADMIN']),
   paymentController.processPayment
 );
 
@@ -69,6 +69,38 @@ router.get(
   '/history',
   authenticate,
   paymentController.getPaymentHistory
+);
+
+/**
+ * @swagger
+ * /api/payments/workflow:
+ *   get:
+ *     summary: Get admin payment workflow summary
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.get(
+  '/workflow',
+  authenticate,
+  authorizeRoles(['ADMIN']),
+  paymentController.getAdminWorkflow
+);
+
+/**
+ * @swagger
+ * /api/payments/{id}/status:
+ *   patch:
+ *     summary: Update payment status (Admin only)
+ *     tags: [Payments]
+ *     security:
+ *       - bearerAuth: []
+ */
+router.patch(
+  '/:id/status',
+  authenticate,
+  authorizeRoles(['ADMIN']),
+  paymentController.updatePaymentStatus
 );
 
 export default router;

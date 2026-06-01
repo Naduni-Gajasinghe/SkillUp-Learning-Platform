@@ -9,6 +9,10 @@ export default function RoleRedirect() {
   }
 
   const roles = user.roles || [];
+  if (roles.includes('ADMIN')) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
   if (roles.includes('TUTOR')) {
     return <Navigate to="/tutor/dashboard" replace />;
   }

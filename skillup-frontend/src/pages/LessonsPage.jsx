@@ -11,6 +11,8 @@ export default function LessonsPage() {
   const [filters, setFilters] = useState({ search: '', categoryId: '' });
   const [loading, setLoading] = useState(true);
 
+  const freeLessons = useMemo(() => lessons.filter((lesson) => !lesson.isPremium), [lessons]);
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -46,7 +48,10 @@ export default function LessonsPage() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold text-slate-900">Lessons</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Lessons</h1>
+          <p className="text-sm text-slate-600">Free lessons are shown by default. Premium lessons unlock after Stripe payment.</p>
+        </div>
         <div className="flex gap-2">
           <input
             placeholder="Search lessons"
@@ -69,7 +74,7 @@ export default function LessonsPage() {
 
       {loading ? <p className="text-sm text-slate-500">Loading lessons...</p> : null}
       <div className="grid gap-4 md:grid-cols-2">
-        {lessons.map((lesson) => (
+        {freeLessons.map((lesson) => (
           <Card key={lesson.id}>
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-lg font-semibold text-slate-900">{lesson.title}</h2>
@@ -102,6 +107,7 @@ export default function LessonsPage() {
           </Card>
         ))}
       </div>
+      {!loading && freeLessons.length === 0 ? <p className="text-sm text-slate-500">No free lessons match your filters.</p> : null}
     </div>
   );
 }

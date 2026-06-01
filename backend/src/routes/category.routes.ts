@@ -51,7 +51,7 @@ router.get('/', categoryController.getAll);
  *       401:
  *         description: Unauthorized
  */
-router.post('/', authenticate, authorizeRoles('TUTOR', 'ADMIN'), validate(createCategorySchema), categoryController.create);
+router.post('/', authenticate, authorizeRoles(['TUTOR', 'ADMIN']), validate(createCategorySchema), categoryController.create);
 
 /**
  * @swagger

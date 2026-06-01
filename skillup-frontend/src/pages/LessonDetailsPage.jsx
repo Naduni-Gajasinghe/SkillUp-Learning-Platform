@@ -4,11 +4,14 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { completeLesson, trackLessonView } from '../services/learnerService';
 import { fetchLessonById } from '../services/lessonService';
+import { processPayment } from '../services/tutorService';
 
 export default function LessonDetailsPage() {
   const { id } = useParams();
   const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [unlockAmount, setUnlockAmount] = useState('10');
+  const [unlockMessage, setUnlockMessage] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -20,6 +23,20 @@ export default function LessonDetailsPage() {
 
     load();
   }, [id]);
+
+  const unlockPremiumLesson = async () => {
+    setUnlockMessage('Processing Stripe payment...');
+    await processPayment({
+      lessonId: id,
+      amount: Number(unlockAmount),
+      paymentMethod: 'CARD',
+      gateway: 'STRIPE',
+      purpose: `LESSON_ACCESS:${id}`,
+    });
+    const lessonData = await fetchLessonById(id);
+    setLesson(lessonData);
+    setUnlockMessage('Premium access unlocked with Stripe.');
+  };
 
   if (loading) return <p className="text-sm text-slate-500">Loading lesson...</p>;
   if (!lesson) return <p className="text-sm text-rose-600">Lesson not found.</p>;
@@ -46,6 +63,27 @@ export default function LessonDetailsPage() {
         >
           Open lesson content
         </a>
+      ) : null}
+
+      {lesson.accessRestricted ? (
+        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4">
+          <p className="font-semibold text-amber-900">Premium lesson locked</p>
+          <p className="mt-1 text-sm text-amber-800">
+            Pay with Stripe to unlock this lesson. After payment, the content link will become available.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <input
+              type="number"
+              min="1"
+              step="0.01"
+              className="w-40 rounded-lg border border-amber-300 px-3 py-2 text-sm"
+              value={unlockAmount}
+              onChange={(e) => setUnlockAmount(e.target.value)}
+            />
+            <Button onClick={unlockPremiumLesson}>Unlock with Stripe</Button>
+          </div>
+          {unlockMessage ? <p className="mt-2 text-sm text-amber-900">{unlockMessage}</p> : null}
+        </div>
       ) : null}
 
       <div className="mt-6 flex flex-wrap gap-2">

@@ -1,17 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { cancelBooking, createBooking, fetchMyBookings, fetchTutors } from '../services/bookingService';
+import { fetchPaymentHistory, processPayment } from '../services/tutorService';
 
 export default function LearnerBookingsPage() {
   const [tutors, setTutors] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [paymentHistory, setPaymentHistory] = useState([]);
+  const [paymentResult, setPaymentResult] = useState('');
   const [form, setForm] = useState({ tutorId: '', startTime: '', endTime: '', notes: '' });
+  const [paymentForm, setPaymentForm] = useState({
+    bookingId: '',
+    amount: '',
+    paymentMethod: 'CARD',
+    gateway: 'STRIPE',
+    purpose: 'TUTOR_SESSION',
+  });
+
+  const selectableTutors = useMemo(() => {
+    const approvedTutors = tutors.filter((tutor) => tutor.verificationStatus === 'APPROVED');
+    return approvedTutors.length > 0 ? approvedTutors : tutors;
+  }, [tutors]);
+
+  const getTutorLabel = (tutor) => {
+    if (!tutor) return 'Tutor';
+
+    const name = tutor.fullName || tutor.name || tutor.user?.fullName || tutor.user?.name;
+    const expertise = tutor.tutorProfile?.expertise || tutor.expertise;
+
+    if (name && expertise) return `${name} · ${expertise}`;
+    return name || expertise || 'Tutor';
+  };
 
   const load = async () => {
-    const [tutorData, bookingData] = await Promise.all([fetchTutors(), fetchMyBookings()]);
-    setTutors(tutorData);
-    setBookings(bookingData);
+    const [tutorResult, bookingResult, paymentResultData] = await Promise.allSettled([
+      fetchTutors(),
+      fetchMyBookings(),
+      fetchPaymentHistory(),
+    ]);
+
+    setTutors(tutorResult.status === 'fulfilled' ? tutorResult.value : []);
+    setBookings(bookingResult.status === 'fulfilled' ? bookingResult.value : []);
+    setPaymentHistory(paymentResultData.status === 'fulfilled' ? paymentResultData.value : []);
   };
 
   useEffect(() => {
@@ -20,7 +51,12 @@ export default function LearnerBookingsPage() {
 
   const onBook = async (event) => {
     event.preventDefault();
-    await createBooking(form);
+    await createBooking({
+      ...form,
+      tutorId: form.tutorId,
+      startTime: new Date(form.startTime).toISOString(),
+      endTime: new Date(form.endTime).toISOString(),
+    });
     setForm({ tutorId: '', startTime: '', endTime: '', notes: '' });
     await load();
   };
@@ -30,9 +66,29 @@ export default function LearnerBookingsPage() {
     await load();
   };
 
+  const onPay = async (event) => {
+    event.preventDefault();
+    const payment = await processPayment({
+      ...paymentForm,
+      amount: Number(paymentForm.amount),
+    });
+    setPaymentResult(payment.nextStep || 'Payment submitted');
+    setPaymentForm({
+      bookingId: '',
+      amount: '',
+      paymentMethod: 'CARD',
+      gateway: 'STRIPE',
+      purpose: 'TUTOR_SESSION',
+    });
+    await load();
+  };
+
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-slate-900">Bookings</h1>
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Bookings</h1>
+        <p className="text-sm text-slate-600">Book tutor sessions, pay through a gateway, and track session history.</p>
+      </div>
 
       <Card>
         <h2 className="text-lg font-semibold text-slate-900">Book a tutor session</h2>
@@ -44,8 +100,11 @@ export default function LearnerBookingsPage() {
             required
           >
             <option value="">Select tutor</option>
-            {tutors.map((tutor) => (
-              <option key={tutor.id} value={tutor.id}>{tutor.fullName}</option>
+            {selectableTutors.map((tutor) => (
+              <option key={tutor.userId || tutor.user?.id} value={tutor.userId || tutor.user?.id}>
+                {getTutorLabel(tutor)}
+                {tutor.verificationStatus ? ` (${tutor.verificationStatus.toLowerCase()})` : ''}
+              </option>
             ))}
           </select>
           <input
@@ -75,6 +134,65 @@ export default function LearnerBookingsPage() {
       </Card>
 
       <Card>
+        <h2 className="text-lg font-semibold text-slate-900">Pay for a live session</h2>
+        <p className="mt-1 text-sm text-slate-500">Choose a gateway and connect the payment to a booking when the tutor session is ready.</p>
+        <form className="mt-4 grid gap-3 md:grid-cols-2" onSubmit={onPay}>
+          <select
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            value={paymentForm.bookingId}
+            onChange={(e) => setPaymentForm((prev) => ({ ...prev, bookingId: e.target.value }))}
+            required
+          >
+            <option value="">Select booking</option>
+            {bookings.map((booking) => (
+              <option key={booking.id} value={booking.id}>
+                {booking.tutor?.fullName || 'Tutor'} · {new Date(booking.startTime).toLocaleString()}
+              </option>
+            ))}
+          </select>
+          <input
+            type="number"
+            min="1"
+            step="0.01"
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            placeholder="Amount"
+            value={paymentForm.amount}
+            onChange={(e) => setPaymentForm((prev) => ({ ...prev, amount: e.target.value }))}
+            required
+          />
+          <select
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            value={paymentForm.paymentMethod}
+            onChange={(e) => setPaymentForm((prev) => ({ ...prev, paymentMethod: e.target.value }))}
+          >
+            <option value="CARD">Card</option>
+            <option value="WALLET">Wallet</option>
+            <option value="BANK_TRANSFER">Bank transfer</option>
+          </select>
+          <select
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            value={paymentForm.gateway}
+            onChange={(e) => setPaymentForm((prev) => ({ ...prev, gateway: e.target.value }))}
+          >
+            <option value="STRIPE">Stripe</option>
+            <option value="PAYPAL">PayPal</option>
+            <option value="RAZORPAY">Razorpay</option>
+            <option value="MOCK">Mock gateway</option>
+          </select>
+          <input
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+            placeholder="Purpose"
+            value={paymentForm.purpose}
+            onChange={(e) => setPaymentForm((prev) => ({ ...prev, purpose: e.target.value }))}
+          />
+          <div className="md:col-span-2 flex items-center gap-3">
+            <Button type="submit">Pay now</Button>
+            {paymentResult ? <p className="text-sm text-slate-600">{paymentResult}</p> : null}
+          </div>
+        </form>
+      </Card>
+
+      <Card>
         <h2 className="text-lg font-semibold text-slate-900">My booking history</h2>
         <div className="mt-3 space-y-3">
           {bookings.map((booking) => (
@@ -92,6 +210,21 @@ export default function LearnerBookingsPage() {
             </div>
           ))}
           {bookings.length === 0 ? <p className="text-sm text-slate-500">No bookings yet.</p> : null}
+        </div>
+      </Card>
+
+      <Card>
+        <h2 className="text-lg font-semibold text-slate-900">Payment history</h2>
+        <div className="mt-3 space-y-3">
+          {paymentHistory.map((payment) => (
+            <div key={payment.id} className="rounded-lg border border-slate-200 p-3">
+              <p className="font-medium text-slate-900">{payment.purpose}</p>
+              <p className="text-sm text-slate-600">{payment.paymentMethod}</p>
+              <p className="text-sm text-slate-700">Amount: {payment.amount}</p>
+              <p className="text-xs text-slate-500">Status: {payment.status}</p>
+            </div>
+          ))}
+          {paymentHistory.length === 0 ? <p className="text-sm text-slate-500">No payments yet.</p> : null}
         </div>
       </Card>
     </div>

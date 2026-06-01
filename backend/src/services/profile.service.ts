@@ -1,5 +1,6 @@
 import { ProfileRepository } from '../repositories/profile.repository';
 import { UpdateLearnerInput, UpdateTutorInput } from '../utils/profile.validation';
+import { VerificationStatus } from '@prisma/client';
 
 export class ProfileService {
   private profileRepository: ProfileRepository;
@@ -27,5 +28,13 @@ export class ProfileService {
 
   async getTutors() {
     return this.profileRepository.getAllTutors();
+  }
+
+  async getPendingTutorApplications() {
+    return this.profileRepository.getPendingTutorApplications();
+  }
+
+  async updateTutorVerificationStatus(userId: string, verificationStatus: VerificationStatus) {
+    return this.profileRepository.updateTutorVerificationStatus(userId, verificationStatus);
   }
 }

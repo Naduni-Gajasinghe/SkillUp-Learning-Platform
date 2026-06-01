@@ -1,3 +1,4 @@
+import { VerificationStatus } from '@prisma/client';
 import prisma from '../config/prisma';
 import { UpdateLearnerInput, UpdateTutorInput } from '../utils/profile.validation';
 
@@ -74,10 +75,56 @@ export class ProfileRepository {
   async getAllTutors() {
     return prisma.tutorProfile.findMany({
       where: { isAvailable: true },
+      select: {
+        id: true,
+        userId: true,
+        expertise: true,
+        qualification: true,
+        experience: true,
+        hourlyRate: true,
+        isAvailable: true,
+        verificationStatus: true,
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            profileImage: true,
+            bio: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getPendingTutorApplications() {
+    return prisma.tutorProfile.findMany({
+      where: { verificationStatus: 'PENDING' },
       include: {
         user: {
           select: {
+            id: true,
             fullName: true,
+            email: true,
+            profileImage: true,
+            bio: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async updateTutorVerificationStatus(userId: string, verificationStatus: VerificationStatus) {
+    return prisma.tutorProfile.update({
+      where: { userId },
+      data: { verificationStatus },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
             profileImage: true,
             bio: true,
           },
