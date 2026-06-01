@@ -101,6 +101,8 @@ model Booking {
   tutorId         String
   tutor           User          @relation("TutorBookings", fields: [tutorId], references: [id])
 
+  payment         Payment?
+
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
@@ -221,6 +223,9 @@ model LessonTag {
 }
 
 enum BookingStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
   SCHEDULED
   COMPLETED
   CANCELLED
@@ -438,11 +443,16 @@ model Payment {
   amount        Float
   status        PaymentStatus @default(PENDING)
   paymentMethod String
+  gateway       String?
   purpose       String        // "LESSON_PURCHASE", "TUTOR_SESSION", "SUBSCRIPTION"
+  commissionRate Float        @default(0)
+  commissionAmount Float      @default(0)
+  tutorEarnings  Float         @default(0)
   userId        String
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   lessonId      String?
-  bookingId     String?
+  bookingId     String?       @unique
+  booking       Booking?      @relation(fields: [bookingId], references: [id], onDelete: SetNull)
 
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt

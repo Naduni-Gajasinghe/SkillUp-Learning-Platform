@@ -36,6 +36,9 @@ export class TutorRepository {
             verificationStatus: true,
           },
         },
+        availabilities: {
+          orderBy: { dayOfWeek: 'asc' },
+        },
       },
     });
   }

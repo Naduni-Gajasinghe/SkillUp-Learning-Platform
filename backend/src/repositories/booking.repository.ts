@@ -1,5 +1,4 @@
 import prisma from '../config/prisma';
-import { BookingStatus } from '@prisma/client';
 
 export class BookingRepository {
   async create(data: {
@@ -7,6 +6,7 @@ export class BookingRepository {
     tutorId: string;
     startTime: Date;
     endTime: Date;
+    status?: string;
     notes?: string;
   }) {
     return prisma.booking.create({
@@ -14,18 +14,29 @@ export class BookingRepository {
       include: {
         tutor: { select: { fullName: true, email: true } },
         learner: { select: { fullName: true, email: true } },
+        payment: true,
       },
-    });
+    } as any);
   }
 
   async findById(id: string) {
     return prisma.booking.findUnique({
       where: { id },
       include: {
-        tutor: { select: { fullName: true, email: true, id: true } },
+        tutor: {
+          select: {
+            fullName: true,
+            email: true,
+            id: true,
+            tutorProfile: {
+              select: { hourlyRate: true, verificationStatus: true, isAvailable: true },
+            },
+          },
+        },
         learner: { select: { fullName: true, email: true, id: true } },
+        payment: true,
       },
-    });
+    } as any);
   }
 
   async findOverlappingBookings(tutorId: string, startTime: Date, endTime: Date) {
@@ -33,13 +44,13 @@ export class BookingRepository {
     return prisma.booking.findMany({
       where: {
         tutorId,
-        status: 'SCHEDULED',
+        status: { in: ['PENDING', 'CONFIRMED', 'SCHEDULED'] as any },
         AND: [
           { startTime: { lt: endTime } },
           { endTime: { gt: startTime } },
         ],
       },
-    });
+    } as any);
   }
 
   async getLearnerBookings(learnerId: string) {
@@ -47,9 +58,10 @@ export class BookingRepository {
       where: { learnerId },
       include: {
         tutor: { select: { fullName: true, profileImage: true, id: true } },
+        payment: true,
       },
       orderBy: { startTime: 'desc' },
-    });
+    } as any);
   }
 
   async getTutorBookings(tutorId: string) {
@@ -57,15 +69,16 @@ export class BookingRepository {
       where: { tutorId },
       include: {
         learner: { select: { fullName: true, profileImage: true, id: true } },
+        payment: true,
       },
       orderBy: { startTime: 'desc' },
-    });
+    } as any);
   }
 
-  async updateStatus(id: string, status: BookingStatus, cancellationReason?: string) {
+  async updateStatus(id: string, status: string, cancellationReason?: string) {
     return prisma.booking.update({
       where: { id },
       data: { status, cancellationReason },
-    });
+    } as any);
   }
 }

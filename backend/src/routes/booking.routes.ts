@@ -27,6 +27,7 @@ const bookingController = new BookingController();
  *               startTime: { type: string, format: date-time }
  *               endTime: { type: string, format: date-time }
  *               notes: { type: string }
+ *               paymentRequired: { type: boolean }
  *     responses:
  *       201:
  *         description: Booking created
@@ -98,7 +99,7 @@ router.post('/:id/cancel', authenticate, validate(cancelBookingSchema), bookingC
  *             type: object
  *             required: [status]
  *             properties:
- *               status: { type: string, enum: [SCHEDULED, COMPLETED, CANCELLED, NO_SHOW] }
+ *               status: { type: string, enum: [CONFIRMED, REJECTED, COMPLETED, CANCELLED, NO_SHOW] }
  *               cancellationReason: { type: string }
  *     responses:
  *       200:

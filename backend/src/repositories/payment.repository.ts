@@ -8,6 +8,10 @@ export class PaymentRepository {
     amount: number;
     paymentMethod: string;
     purpose: string;
+    gateway?: string;
+    commissionRate?: number;
+    commissionAmount?: number;
+    tutorEarnings?: number;
     lessonId?: string;
     bookingId?: string;
   }, status: PaymentStatus = 'COMPLETED') {
@@ -28,6 +32,20 @@ export class PaymentRepository {
 
   async getPaymentById(id: string) {
     return prisma.payment.findUnique({ where: { id } });
+  }
+
+  async findByBookingId(bookingId: string) {
+    return prisma.payment.findFirst({
+      where: { bookingId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findCompletedByBookingId(bookingId: string) {
+    return prisma.payment.findFirst({
+      where: { bookingId, status: 'COMPLETED' },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async updatePaymentStatus(id: string, status: PaymentStatus) {
@@ -161,6 +179,9 @@ export class PaymentRepository {
           id: payment.id,
           amount: payment.amount,
           paymentMethod: payment.paymentMethod,
+          gateway: payment.gateway,
+          commissionAmount: payment.commissionAmount,
+          tutorEarnings: payment.tutorEarnings,
           purpose: payment.purpose,
           status: payment.status,
           user: payment.user,

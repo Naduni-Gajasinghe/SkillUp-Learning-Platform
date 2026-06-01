@@ -13,7 +13,7 @@ export class BookingController {
       });
       res.status(201).json({
         success: true,
-        message: 'Session booked successfully',
+        message: 'Booking request submitted successfully',
         data: booking,
       });
     } catch (error: any) {

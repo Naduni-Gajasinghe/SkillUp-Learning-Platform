@@ -212,6 +212,11 @@ export default function ProfilePage() {
                 <p className="text-xs text-slate-500">
                   {tutor.hourlyRate ? `Rate: $${tutor.hourlyRate}` : 'Rate not set'} · {tutor.isAvailable ? 'Available' : 'Busy'}
                 </p>
+                {tutor.availabilities?.length ? (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Slots: {tutor.availabilities.slice(0, 2).map((slot) => `${slot.dayOfWeek} ${slot.startTime}-${slot.endTime}`).join(', ')}
+                  </p>
+                ) : null}
               </div>
             ))}
             {tutorProfiles.length === 0 ? <p className="text-sm text-slate-500">No tutors available yet.</p> : null}

@@ -1,15 +1,23 @@
 import { PaymentRepository } from '../repositories/payment.repository';
 import { BookingRepository } from '../repositories/booking.repository';
+import { TutorRepository } from '../repositories/tutor.repository';
 
 export class PaymentService {
   private paymentRepository: PaymentRepository;
   private bookingRepository: BookingRepository;
+  private tutorRepository: TutorRepository;
 
   private readonly supportedGateways = ['STRIPE', 'PAYPAL', 'RAZORPAY', 'MOCK'];
+  private readonly commissionRate = 0.2;
 
   constructor() {
     this.paymentRepository = new PaymentRepository();
     this.bookingRepository = new BookingRepository();
+    this.tutorRepository = new TutorRepository();
+  }
+
+  private roundCurrency(value: number) {
+    return Math.round(value * 100) / 100;
   }
 
   async processPayment(data: {
@@ -25,6 +33,11 @@ export class PaymentService {
 
     const normalizedBookingId = data.bookingId?.trim() || undefined;
     const normalizedLessonId = data.lessonId?.trim() || undefined;
+    const gateway = (data.gateway || 'STRIPE').toUpperCase();
+
+    if (!this.supportedGateways.includes(gateway)) {
+      throw new Error(`Unsupported payment gateway. Choose one of: ${this.supportedGateways.join(', ')}`);
+    }
 
     if (data.purpose === 'TUTOR_SESSION') {
       if (!normalizedBookingId) {
@@ -39,11 +52,58 @@ export class PaymentService {
       if (booking.learnerId !== data.userId) {
         throw new Error('You can only pay for your own booking');
       }
-    }
 
-    const gateway = (data.gateway || 'STRIPE').toUpperCase();
-    if (!this.supportedGateways.includes(gateway)) {
-      throw new Error(`Unsupported payment gateway. Choose one of: ${this.supportedGateways.join(', ')}`);
+      if (!['PENDING', 'SCHEDULED'].includes(booking.status)) {
+        throw new Error('This booking is no longer payable');
+      }
+
+      const existingPayment = await this.paymentRepository.findCompletedByBookingId(normalizedBookingId);
+      if (existingPayment) {
+        throw new Error('This booking has already been paid');
+      }
+
+      const tutor = await this.tutorRepository.findTutorById(booking.tutorId);
+      const hourlyRate = tutor?.tutorProfile?.hourlyRate || 0;
+      const durationHours = (new Date(booking.endTime).getTime() - new Date(booking.startTime).getTime()) / (1000 * 60 * 60);
+      const expectedAmount = this.roundCurrency(durationHours * hourlyRate);
+
+      if (expectedAmount <= 0) {
+        throw new Error('Unable to calculate the session price for this booking');
+      }
+
+      const paymentAmount = expectedAmount;
+      const commissionAmount = this.roundCurrency(paymentAmount * this.commissionRate);
+      const tutorEarnings = this.roundCurrency(paymentAmount - commissionAmount);
+
+      const status = gateway === 'STRIPE' || gateway === 'MOCK' ? 'COMPLETED' : 'PENDING';
+
+      const payment = await this.paymentRepository.createPayment(
+        {
+          userId: data.userId,
+          amount: paymentAmount,
+          paymentMethod: `${gateway} / ${data.paymentMethod}`,
+          purpose: data.purpose,
+          bookingId: normalizedBookingId,
+          lessonId: normalizedLessonId,
+          gateway,
+          commissionRate: this.commissionRate,
+          commissionAmount,
+          tutorEarnings,
+        },
+        status,
+      );
+
+      return {
+        ...payment,
+        gateway,
+        sessionFee: paymentAmount,
+        platformCommission: commissionAmount,
+        tutorEarnings,
+        nextStep:
+          status === 'PENDING'
+            ? 'Payment created and waiting for gateway confirmation.'
+            : `Payment completed. Tutor earns LKR ${tutorEarnings} after a ${Math.round(this.commissionRate * 100)}% platform commission.`,
+      };
     }
 
     const status = gateway === 'STRIPE' || gateway === 'MOCK' ? 'COMPLETED' : 'PENDING';
@@ -54,6 +114,10 @@ export class PaymentService {
         amount: data.amount,
         paymentMethod: `${gateway} / ${data.paymentMethod}`,
         purpose: data.purpose,
+        gateway,
+        commissionRate: data.purpose === 'TUTOR_SESSION' ? this.commissionRate : 0,
+        commissionAmount: 0,
+        tutorEarnings: 0,
         bookingId: normalizedBookingId,
         lessonId: normalizedLessonId,
       },

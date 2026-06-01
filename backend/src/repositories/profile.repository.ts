@@ -84,6 +84,9 @@ export class ProfileRepository {
         hourlyRate: true,
         isAvailable: true,
         verificationStatus: true,
+        availabilities: {
+          orderBy: { dayOfWeek: 'asc' },
+        },
         user: {
           select: {
             id: true,

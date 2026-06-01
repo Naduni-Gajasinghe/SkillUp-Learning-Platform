@@ -1,13 +1,43 @@
 import { useEffect, useMemo, useState } from 'react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import { cancelBooking, createBooking, fetchMyBookings, fetchTutors } from '../services/bookingService';
+import { cancelBooking, createBooking, fetchMyBookings, fetchTutors, fetchTutorAvailability } from '../services/bookingService';
 import { fetchPaymentHistory, processPayment } from '../services/tutorService';
+
+const formatLocalDateTime = (date) => {
+  const pad = (value) => String(value).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+};
+
+const buildNextSlot = (slot) => {
+  const now = new Date();
+  const candidate = new Date(now);
+  const offset = (slot.dayOfWeek - candidate.getDay() + 7) % 7;
+  candidate.setDate(candidate.getDate() + offset);
+
+  const [startHours, startMinutes] = slot.startTime.split(':').map(Number);
+  const [endHours, endMinutes] = slot.endTime.split(':').map(Number);
+
+  const start = new Date(candidate);
+  start.setHours(startHours, startMinutes, 0, 0);
+
+  const end = new Date(candidate);
+  end.setHours(endHours, endMinutes, 0, 0);
+
+  if (start <= now) {
+    start.setDate(start.getDate() + 7);
+    end.setDate(end.getDate() + 7);
+  }
+
+  return { start, end };
+};
 
 export default function LearnerBookingsPage() {
   const [tutors, setTutors] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [availability, setAvailability] = useState([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(false);
   const [paymentResult, setPaymentResult] = useState('');
   const [form, setForm] = useState({ tutorId: '', startTime: '', endTime: '', notes: '' });
   const [paymentForm, setPaymentForm] = useState({
@@ -49,15 +79,42 @@ export default function LearnerBookingsPage() {
     load();
   }, []);
 
+  useEffect(() => {
+    const loadAvailability = async () => {
+      if (!form.tutorId) {
+        setAvailability([]);
+        return;
+      }
+
+      try {
+        setAvailabilityLoading(true);
+        const slots = await fetchTutorAvailability(form.tutorId);
+        setAvailability(slots);
+      } catch (error) {
+        setAvailability([]);
+      } finally {
+        setAvailabilityLoading(false);
+      }
+    };
+
+    loadAvailability();
+  }, [form.tutorId]);
+
   const onBook = async (event) => {
     event.preventDefault();
-    await createBooking({
+    const booking = await createBooking({
       ...form,
       tutorId: form.tutorId,
       startTime: new Date(form.startTime).toISOString(),
       endTime: new Date(form.endTime).toISOString(),
     });
     setForm({ tutorId: '', startTime: '', endTime: '', notes: '' });
+    setPaymentForm((prev) => ({
+      ...prev,
+      bookingId: booking.id,
+      amount: booking.sessionFee?.toString() || '',
+    }));
+    setPaymentResult('Booking request created. Complete payment to keep the tutor slot reserved.');
     await load();
   };
 
@@ -81,6 +138,15 @@ export default function LearnerBookingsPage() {
       purpose: 'TUTOR_SESSION',
     });
     await load();
+  };
+
+  const onUseSlot = (slot) => {
+    const nextSlot = buildNextSlot(slot);
+    setForm((prev) => ({
+      ...prev,
+      startTime: formatLocalDateTime(nextSlot.start),
+      endTime: formatLocalDateTime(nextSlot.end),
+    }));
   };
 
   return (
@@ -131,6 +197,29 @@ export default function LearnerBookingsPage() {
             <Button type="submit">Book session</Button>
           </div>
         </form>
+        <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold text-slate-900">Tutor availability</h3>
+            {availabilityLoading ? <span className="text-xs text-slate-500">Loading slots...</span> : null}
+          </div>
+          {availability.length > 0 ? (
+            <div className="mt-3 grid gap-2 md:grid-cols-2">
+              {availability.map((slot) => (
+                <button
+                  key={slot.id}
+                  type="button"
+                  className="rounded-lg border border-cyan-200 bg-white px-3 py-2 text-left text-sm text-slate-700 transition hover:border-cyan-400 hover:bg-cyan-50"
+                  onClick={() => onUseSlot(slot)}
+                >
+                  <span className="block font-semibold text-slate-900">Day {slot.dayOfWeek}</span>
+                  <span>{slot.startTime} - {slot.endTime}</span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm text-slate-500">Select a tutor to see their recurring availability.</p>
+          )}
+        </div>
       </Card>
 
       <Card>
@@ -146,7 +235,7 @@ export default function LearnerBookingsPage() {
             <option value="">Select booking</option>
             {bookings.map((booking) => (
               <option key={booking.id} value={booking.id}>
-                {booking.tutor?.fullName || 'Tutor'} · {new Date(booking.startTime).toLocaleString()}
+                {booking.tutor?.fullName || 'Tutor'} · {new Date(booking.startTime).toLocaleString()} · {booking.status}
               </option>
             ))}
           </select>
@@ -202,7 +291,8 @@ export default function LearnerBookingsPage() {
                 {new Date(booking.startTime).toLocaleString()} - {new Date(booking.endTime).toLocaleString()}
               </p>
               <p className="mt-1 text-xs text-slate-500">Status: {booking.status}</p>
-              {booking.status === 'SCHEDULED' ? (
+              <p className="text-xs text-slate-500">Payment: {booking.payment?.status || 'Not paid'}</p>
+              {booking.status === 'PENDING' ? (
                 <Button className="mt-2" variant="danger" onClick={() => onCancel(booking.id)}>
                   Cancel
                 </Button>
@@ -221,6 +311,8 @@ export default function LearnerBookingsPage() {
               <p className="font-medium text-slate-900">{payment.purpose}</p>
               <p className="text-sm text-slate-600">{payment.paymentMethod}</p>
               <p className="text-sm text-slate-700">Amount: {payment.amount}</p>
+              {payment.commissionAmount ? <p className="text-xs text-slate-500">Commission: {payment.commissionAmount}</p> : null}
+              {payment.tutorEarnings ? <p className="text-xs text-slate-500">Tutor earnings: {payment.tutorEarnings}</p> : null}
               <p className="text-xs text-slate-500">Status: {payment.status}</p>
             </div>
           ))}
