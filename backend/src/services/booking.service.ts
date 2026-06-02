@@ -176,12 +176,14 @@ export class BookingService {
     return this.bookingRepository.getLearnerBookings(userId);
   }
 
-  async updateBookingStatus(bookingId: string, tutorId: string, status: BookingDecisionStatus, cancellationReason?: string) {
+  async updateBookingStatus(bookingId: string, userId: string, status: BookingDecisionStatus, cancellationReason?: string, userRoles: string[] = []) {
     const booking = await this.bookingRepository.findById(bookingId);
     if (!booking) throw new Error('Booking not found');
 
-    if (booking.tutorId !== tutorId) {
-      throw new Error('Only the tutor can update the booking status');
+    // Check authorization: either the tutor or an admin can update
+    const isAdmin = userRoles.includes('ADMIN');
+    if (booking.tutorId !== userId && !isAdmin) {
+      throw new Error('Only the tutor or admin can update the booking status');
     }
 
     if (status === 'CONFIRMED') {

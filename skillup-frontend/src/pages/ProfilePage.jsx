@@ -5,7 +5,8 @@ import { toast } from 'react-toastify';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { clearAuthError } from '../store/authSlice';
-import { fetchMyProfile, fetchTutorProfiles, updateMyProfile } from '../services/profileService';
+import { fetchMyProfile, updateMyProfile } from '../services/profileService';
+import { fetchMyAvailability, createAvailability, updateAvailability, deleteAvailability } from '../services/tutorService';
 
 const emptyForm = {
   fullName: '',
@@ -26,8 +27,12 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState(null);
-  const [tutorProfiles, setTutorProfiles] = useState([]);
   const [form, setForm] = useState(emptyForm);
+  const [availabilities, setAvailabilities] = useState([]);
+  const [showAddSlot, setShowAddSlot] = useState(false);
+  const [newSlot, setNewSlot] = useState({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
+  const [editingSlot, setEditingSlot] = useState(null);
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
 
   const roles = useMemo(() => profile?.userRoles?.map((entry) => entry.role?.name).filter(Boolean) || authUser?.roles || [], [authUser?.roles, profile?.userRoles]);
   const isTutor = roles.includes('TUTOR');
@@ -37,9 +42,8 @@ export default function ProfilePage() {
     const load = async () => {
       try {
         setLoading(true);
-        const [profileData, tutorData] = await Promise.all([fetchMyProfile(), fetchTutorProfiles()]);
+        const profileData = await fetchMyProfile();
         setProfile(profileData);
-        setTutorProfiles(tutorData);
         setForm({
           fullName: profileData?.fullName || '',
           bio: profileData?.bio || '',
@@ -52,6 +56,19 @@ export default function ProfilePage() {
           isAvailable: profileData?.tutorProfile?.isAvailable ?? true,
           profileImage: null,
         });
+
+        // Load availability for tutors
+        if (profileData?.tutorProfile) {
+          try {
+            setLoadingAvailability(true);
+            const slots = await fetchMyAvailability();
+            setAvailabilities(slots);
+          } catch (err) {
+            console.error('Failed to load availability:', err);
+          } finally {
+            setLoadingAvailability(false);
+          }
+        }
       } catch (error) {
         toast.error(error.response?.data?.message || 'Failed to load profile');
       } finally {
@@ -79,6 +96,52 @@ export default function ProfilePage() {
       toast.error(error.response?.data?.message || 'Profile update failed');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const onAddSlot = async () => {
+    try {
+      setLoadingAvailability(true);
+      const slot = await createAvailability(newSlot);
+      setAvailabilities((prev) => [...prev, slot]);
+      setNewSlot({ dayOfWeek: 1, startTime: '09:00', endTime: '17:00' });
+      setShowAddSlot(false);
+      toast.success('Availability slot added');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add slot');
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+
+  const onUpdateSlot = async () => {
+    try {
+      setLoadingAvailability(true);
+      const updated = await updateAvailability(editingSlot.id, {
+        dayOfWeek: editingSlot.dayOfWeek,
+        startTime: editingSlot.startTime,
+        endTime: editingSlot.endTime,
+      });
+      setAvailabilities((prev) => prev.map((s) => (s.id === editingSlot.id ? updated : s)));
+      setEditingSlot(null);
+      toast.success('Availability slot updated');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to update slot');
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+
+  const onDeleteSlot = async (id) => {
+    try {
+      setLoadingAvailability(true);
+      await deleteAvailability(id);
+      setAvailabilities((prev) => prev.filter((s) => s.id !== id));
+      toast.success('Availability slot deleted');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete slot');
+    } finally {
+      setLoadingAvailability(false);
     }
   };
 
@@ -202,26 +265,121 @@ export default function ProfilePage() {
           </form>
         </Card>
 
-        <Card>
-          <h2 className="text-lg font-semibold text-slate-900">Available tutors</h2>
-          <div className="mt-4 space-y-3">
-            {tutorProfiles.map((tutor) => (
-              <div key={tutor.id} className="rounded-xl border border-slate-200 p-3">
-                <p className="font-semibold text-slate-900">{tutor.user?.fullName || 'Tutor'}</p>
-                <p className="text-sm text-slate-600">{tutor.expertise}</p>
-                <p className="text-xs text-slate-500">
-                  {tutor.hourlyRate ? `Rate: $${tutor.hourlyRate}` : 'Rate not set'} · {tutor.isAvailable ? 'Available' : 'Busy'}
-                </p>
-                {tutor.availabilities?.length ? (
-                  <p className="mt-1 text-xs text-slate-500">
-                    Slots: {tutor.availabilities.slice(0, 2).map((slot) => `${slot.dayOfWeek} ${slot.startTime}-${slot.endTime}`).join(', ')}
-                  </p>
-                ) : null}
+        {isTutor && (
+          <Card>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-slate-900">Available Time Slots</h3>
+              {!showAddSlot && <Button onClick={() => setShowAddSlot(true)}>Add slot</Button>}
+            </div>
+
+            {loadingAvailability && (
+              <div className="flex items-center justify-center py-8">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-cyan-600 border-t-transparent" />
               </div>
-            ))}
-            {tutorProfiles.length === 0 ? <p className="text-sm text-slate-500">No tutors available yet.</p> : null}
-          </div>
-        </Card>
+            )}
+
+            {!loadingAvailability && availabilities.length === 0 && !showAddSlot && (
+              <p className="text-sm text-slate-500">No availability slots yet. Add one to start accepting bookings.</p>
+            )}
+
+            {!loadingAvailability && availabilities.length > 0 && !editingSlot && (
+              <div className="space-y-2">
+                {availabilities.map((slot) => (
+                  <div key={slot.id} className="flex items-center justify-between rounded-lg border border-slate-200 bg-slate-50 p-3">
+                    <div>
+                      <p className="font-medium text-slate-900">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][slot.dayOfWeek] || 'Day'}
+                      </p>
+                      <p className="text-sm text-slate-600">{slot.startTime} – {slot.endTime}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditingSlot(slot)}
+                        className="rounded-lg bg-cyan-100 px-3 py-1 text-xs font-medium text-cyan-700 hover:bg-cyan-200"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteSlot(slot.id)}
+                        className="rounded-lg bg-red-100 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-200"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {(showAddSlot || editingSlot) && (
+              <div className="space-y-3 rounded-lg bg-slate-50 p-4">
+                <h4 className="font-medium text-slate-900">{editingSlot ? 'Edit' : 'Add new'} time slot</h4>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-600">Day of week</span>
+                    <select
+                      value={editingSlot ? editingSlot.dayOfWeek : newSlot.dayOfWeek}
+                      onChange={(e) => {
+                        const val = Number(e.target.value);
+                        if (editingSlot) setEditingSlot({ ...editingSlot, dayOfWeek: val });
+                        else setNewSlot({ ...newSlot, dayOfWeek: val });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    >
+                      {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day, i) => (
+                        <option key={i} value={i}>{day}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-600">Start time</span>
+                    <input
+                      type="time"
+                      value={editingSlot ? editingSlot.startTime : newSlot.startTime}
+                      onChange={(e) => {
+                        if (editingSlot) setEditingSlot({ ...editingSlot, startTime: e.target.value });
+                        else setNewSlot({ ...newSlot, startTime: e.target.value });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    />
+                  </label>
+                  <label className="space-y-1">
+                    <span className="text-xs font-medium text-slate-600">End time</span>
+                    <input
+                      type="time"
+                      value={editingSlot ? editingSlot.endTime : newSlot.endTime}
+                      onChange={(e) => {
+                        if (editingSlot) setEditingSlot({ ...editingSlot, endTime: e.target.value });
+                        else setNewSlot({ ...newSlot, endTime: e.target.value });
+                      }}
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                    />
+                  </label>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={editingSlot ? onUpdateSlot : onAddSlot}
+                    disabled={loadingAvailability}
+                  >
+                    {loadingAvailability ? 'Saving...' : editingSlot ? 'Update slot' : 'Add slot'}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowAddSlot(false);
+                      setEditingSlot(null);
+                    }}
+                    disabled={loadingAvailability}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </Card>
+        )}
       </div>
     </div>
   );

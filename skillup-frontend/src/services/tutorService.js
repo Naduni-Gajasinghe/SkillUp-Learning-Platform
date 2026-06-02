@@ -29,3 +29,24 @@ export const fetchPaymentHistory = async () => {
   const { data } = await apiClient.get('/payments/history');
   return data.data || [];
 };
+
+// Availability Management
+export const fetchMyAvailability = async () => {
+  const { data } = await apiClient.get('/tutors/me/availability');
+  return data.data || [];
+};
+
+export const createAvailability = async (payload) => {
+  const { data } = await apiClient.post('/tutors/availability/slots', payload);
+  return data.data;
+};
+
+export const updateAvailability = async (id, payload) => {
+  const { data } = await apiClient.patch(`/tutors/availability/${id}`, payload);
+  return data.data;
+};
+
+export const deleteAvailability = async (id) => {
+  const { data } = await apiClient.delete(`/tutors/availability/${id}`);
+  return data;
+};

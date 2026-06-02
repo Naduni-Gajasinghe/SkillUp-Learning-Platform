@@ -3,20 +3,32 @@ import prisma from '../config/prisma';
 export class TutorRepository {
   async findAllTutors(filters: { search?: string; expertise?: string }) {
     const where: any = {
-      userRoles: {
-        some: { role: { name: 'TUTOR' } },
-      },
-      tutorProfile: {
-        isNot: null,
-        verificationStatus: 'APPROVED',
-      },
+      AND: [
+        {
+          userRoles: {
+            some: { role: { name: 'TUTOR' } },
+          },
+        },
+        {
+          tutorProfile: {
+            isNot: null,
+          },
+        },
+        {
+          tutorProfile: {
+            verificationStatus: 'APPROVED',
+          },
+        },
+      ],
     };
 
     if (filters.search) {
-      where.OR = [
-        { fullName: { contains: filters.search } },
-        { tutorProfile: { expertise: { contains: filters.search } } },
-      ];
+      where.AND.push({
+        OR: [
+          { fullName: { contains: filters.search, mode: 'insensitive' } },
+          { tutorProfile: { expertise: { contains: filters.search, mode: 'insensitive' } } },
+        ],
+      });
     }
 
     return prisma.user.findMany({
@@ -37,6 +49,12 @@ export class TutorRepository {
           },
         },
         availabilities: {
+          select: {
+            id: true,
+            dayOfWeek: true,
+            startTime: true,
+            endTime: true,
+          },
           orderBy: { dayOfWeek: 'asc' },
         },
       },
@@ -77,6 +95,42 @@ export class TutorRepository {
     return prisma.availability.findMany({
       where: { tutorId },
       orderBy: { dayOfWeek: 'asc' },
+    });
+  }
+
+  async getAvailabilityById(availabilityId: string) {
+    return prisma.availability.findUnique({
+      where: { id: availabilityId },
+    });
+  }
+
+  async createAvailability(tutorId: string, data: {
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+  }) {
+    return prisma.availability.create({
+      data: {
+        ...data,
+        tutorId,
+      },
+    });
+  }
+
+  async updateAvailability(availabilityId: string, data: {
+    dayOfWeek?: number;
+    startTime?: string;
+    endTime?: string;
+  }) {
+    return prisma.availability.update({
+      where: { id: availabilityId },
+      data,
+    });
+  }
+
+  async deleteAvailability(availabilityId: string) {
+    return prisma.availability.delete({
+      where: { id: availabilityId },
     });
   }
 }
