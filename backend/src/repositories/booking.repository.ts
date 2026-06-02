@@ -68,7 +68,7 @@ export class BookingRepository {
     return prisma.booking.findMany({
       where: { tutorId },
       include: {
-        learner: { select: { fullName: true, profileImage: true, id: true } },
+        learner: { select: { fullName: true, profileImage: true, id: true, email: true } },
         payment: true,
       },
       orderBy: { startTime: 'desc' },

@@ -8,6 +8,7 @@ const learnerLinks = [
   { to: '/learner/dashboard', label: 'Dashboard' },
   { to: '/learner/profile', label: 'Profile' },
   { to: '/learner/lessons', label: 'Lessons' },
+  { to: '/learner/tutors', label: 'Find Tutors' },
   { to: '/learner/bookings', label: 'Bookings' },
   { to: '/learner/submissions', label: 'Submissions' },
   { to: '/learner/gamification', label: 'Gamification' },

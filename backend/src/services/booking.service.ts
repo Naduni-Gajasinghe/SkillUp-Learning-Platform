@@ -185,9 +185,8 @@ export class BookingService {
     }
 
     if (status === 'CONFIRMED') {
-      const payment = await this.paymentRepository.findCompletedByBookingId(bookingId);
-      if (!payment) {
-        throw new Error('Booking must be paid before it can be confirmed');
+      if (!['PENDING'].includes(booking.status)) {
+        throw new Error('Only pending bookings can be confirmed');
       }
 
       const updatedBooking = await this.bookingRepository.updateStatus(bookingId, 'CONFIRMED');
@@ -195,17 +194,16 @@ export class BookingService {
       await notificationService.createNotification({
         userId: booking.learnerId,
         title: 'Booking Confirmed',
-        message: `Your session on ${booking.startTime.toLocaleString()} has been confirmed by the tutor.`,
-        type: NotificationType.SYSTEM,
+        message: `Your session on ${booking.startTime.toLocaleString()} has been confirmed by the tutor. Please complete payment to secure your slot.`,
+        type: NotificationType.BOOKING_CONFIRMED,
       });
 
       return updatedBooking;
     }
 
     if (status === 'REJECTED') {
-      const payment = await this.paymentRepository.findCompletedByBookingId(bookingId);
-      if (payment) {
-        await this.paymentRepository.updatePaymentStatus(payment.id, 'REFUNDED');
+      if (!['PENDING'].includes(booking.status)) {
+        throw new Error('Only pending bookings can be rejected');
       }
 
       const tutor = await this.tutorRepository.findTutorById(booking.tutorId);
@@ -221,12 +219,12 @@ export class BookingService {
         userId: booking.learnerId,
         title: 'Booking Rejected',
         message: suggestions.length
-          ? `Your session on ${booking.startTime.toLocaleString()} was rejected. Suggested alternatives: ${suggestions.join(', ')}`
-          : `Your session on ${booking.startTime.toLocaleString()} was rejected. Please select another available slot from the tutor profile.`,
-        type: NotificationType.SYSTEM,
+          ? `Your session on ${booking.startTime.toLocaleString()} was rejected. Reason: ${cancellationReason || 'No reason provided'}. Suggested alternatives: ${suggestions.join(', ')}`
+          : `Your session on ${booking.startTime.toLocaleString()} was rejected. Reason: ${cancellationReason || 'No reason provided'}. Please select another available slot from the tutor profile.`,
+        type: NotificationType.BOOKING_REJECTED,
       });
 
-      return updatedBooking;
+      return { ...updatedBooking, suggestedSlots: suggestions };
     }
 
     return this.bookingRepository.updateStatus(bookingId, status, cancellationReason);

@@ -1,7 +1,7 @@
 import apiClient from '../api/client';
 
 export const fetchTutors = async (params = {}) => {
-  const { data } = await apiClient.get('/profiles/tutors', { params });
+  const { data } = await apiClient.get('/tutors', { params });
   return data.data || [];
 };
 

@@ -7,6 +7,8 @@ import LearnerDashboardPage from '../pages/LearnerDashboardPage';
 import LessonsPage from '../pages/LessonsPage';
 import LessonDetailsPage from '../pages/LessonDetailsPage';
 import LearnerBookingsPage from '../pages/LearnerBookingsPage';
+import TutorSearchPage from '../pages/TutorSearchPage';
+import TutorProfilePage from '../pages/TutorProfilePage';
 import LearnerSubmissionsPage from '../pages/LearnerSubmissionsPage';
 import LearnerGamificationPage from '../pages/LearnerGamificationPage';
 import ProfilePage from '../pages/ProfilePage';
@@ -35,6 +37,8 @@ export default function AppRouter() {
           <Route path="/learner/profile" element={<ProfilePage />} />
           <Route path="/learner/lessons" element={<LessonsPage />} />
           <Route path="/learner/lessons/:id" element={<LessonDetailsPage />} />
+          <Route path="/learner/tutors" element={<TutorSearchPage />} />
+          <Route path="/learner/tutors/:id" element={<TutorProfilePage />} />
           <Route path="/learner/bookings" element={<LearnerBookingsPage />} />
           <Route path="/learner/submissions" element={<LearnerSubmissionsPage />} />
           <Route path="/learner/gamification" element={<LearnerGamificationPage />} />
