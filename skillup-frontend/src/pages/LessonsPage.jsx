@@ -5,13 +5,20 @@ import Button from '../components/ui/Button';
 import { completeLesson, trackLessonView } from '../services/learnerService';
 import { fetchCategories, fetchLessons } from '../services/lessonService';
 
+function LockIcon({ className = 'h-4 w-4' }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={className}>
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+    </svg>
+  );
+}
+
 export default function LessonsPage() {
   const [lessons, setLessons] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({ search: '', categoryId: '' });
   const [loading, setLoading] = useState(true);
-
-  const freeLessons = useMemo(() => lessons.filter((lesson) => !lesson.isPremium), [lessons]);
 
   useEffect(() => {
     const load = async () => {
@@ -50,7 +57,7 @@ export default function LessonsPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Lessons</h1>
-          <p className="text-sm text-slate-600">Free lessons are shown by default. Premium lessons unlock after Stripe payment.</p>
+          <p className="text-sm text-slate-600">View all lessons. Premium lessons are locked until payment.</p>
         </div>
         <div className="flex gap-2">
           <input
@@ -74,7 +81,7 @@ export default function LessonsPage() {
 
       {loading ? <p className="text-sm text-slate-500">Loading lessons...</p> : null}
       <div className="grid gap-4 md:grid-cols-2">
-        {freeLessons.map((lesson) => (
+        {lessons.map((lesson) => (
           <Card key={lesson.id}>
             <div className="flex items-start justify-between gap-3">
               <h2 className="text-lg font-semibold text-slate-900">{lesson.title}</h2>
@@ -84,6 +91,7 @@ export default function LessonsPage() {
             </div>
 
             <p className="mt-2 text-sm text-slate-600">{lesson.description}</p>
+            <p className="mt-2 text-xs font-medium text-slate-500">Tutor: {lesson.tutor?.fullName || 'Unknown tutor'}</p>
 
             <div className="mt-3 flex flex-wrap gap-2">
               <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-700">
@@ -93,7 +101,10 @@ export default function LessonsPage() {
                 {lesson.contentType}
               </span>
               <span className={`rounded-full px-2 py-1 text-xs font-semibold ${lesson.isPremium ? 'bg-indigo-100 text-indigo-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                {lesson.isPremium ? 'Premium' : 'Free'}
+                <span className="inline-flex items-center gap-1">
+                  {lesson.isPremium ? <LockIcon className="h-3.5 w-3.5" /> : null}
+                  {lesson.isPremium ? 'Premium' : 'Free'}
+                </span>
               </span>
             </div>
 
@@ -107,7 +118,7 @@ export default function LessonsPage() {
           </Card>
         ))}
       </div>
-      {!loading && freeLessons.length === 0 ? <p className="text-sm text-slate-500">No free lessons match your filters.</p> : null}
+      {!loading && lessons.length === 0 ? <p className="text-sm text-slate-500">No lessons match your filters.</p> : null}
     </div>
   );
 }

@@ -21,6 +21,8 @@ import paymentRoutes from './routes/payment.routes';
 import subscriptionRoutes from './routes/subscription.routes';
 import adminRoutes from './routes/admin.routes';
 import { errorMiddleware } from './middlewares/error.middleware';
+import { optionalAuthenticate } from './middlewares/auth.middleware';
+import { lessonFileAccessMiddleware } from './middlewares/lessonFileAccess.middleware';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import path from 'path';
@@ -31,6 +33,12 @@ app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
+app.use(
+	'/uploads/lessons',
+	optionalAuthenticate,
+	lessonFileAccessMiddleware,
+	express.static(path.join(process.cwd(), 'uploads', 'lessons'))
+);
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Routes

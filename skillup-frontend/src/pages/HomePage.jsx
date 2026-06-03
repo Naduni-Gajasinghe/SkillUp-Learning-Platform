@@ -7,7 +7,7 @@ export default function HomePage() {
       <div className="mx-auto max-w-5xl">
         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-300">SkillUp Platform</p>
         <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight md:text-6xl">
-          AI-Powered micro-learning for learners and tutors.
+          Micro-learning Platfrom for learners and tutors.
         </h1>
         <p className="mt-5 max-w-2xl text-slate-200">
           Start with authentication, then continue feature-by-feature through lessons, bookings, submissions, and analytics.

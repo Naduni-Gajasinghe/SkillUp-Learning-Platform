@@ -26,6 +26,13 @@ export class LessonRepository {
     });
   }
 
+  async findByContentUrl(contentUrl: string) {
+    return prisma.lesson.findFirst({
+      where: { contentUrl },
+      select: { id: true, isPremium: true, tutorId: true },
+    });
+  }
+
   async findAll(filters: any) {
     const { categoryId, difficulty, isPremium, search } = filters;
     

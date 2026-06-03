@@ -12,6 +12,7 @@ export default function LessonDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [unlockAmount, setUnlockAmount] = useState('10');
   const [unlockMessage, setUnlockMessage] = useState('');
+  const accessToken = typeof window !== 'undefined' ? localStorage.getItem('skillup_access_token') : null;
 
   useEffect(() => {
     const load = async () => {
@@ -56,7 +57,7 @@ export default function LessonDetailsPage() {
 
       {lesson.contentUrl ? (
         <a
-          href={`http://localhost:5000${lesson.contentUrl}`}
+          href={`http://localhost:5000${lesson.contentUrl}${accessToken ? `?token=${encodeURIComponent(accessToken)}` : ''}`}
           target="_blank"
           rel="noreferrer"
           className="mt-4 inline-block text-sm font-semibold text-cyan-700"
