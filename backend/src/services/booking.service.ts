@@ -6,6 +6,7 @@ import { NotificationService } from './notification.service';
 
 const notificationService = new NotificationService();
 const COMMISSION_RATE = 0.2;
+const VALID_BOOKING_STATUSES = ['PENDING', 'CONFIRMED', 'REJECTED', 'SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'];
 type BookingDecisionStatus = 'CONFIRMED' | 'REJECTED' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
 
 export class BookingService {
@@ -177,6 +178,11 @@ export class BookingService {
   }
 
   async updateBookingStatus(bookingId: string, userId: string, status: BookingDecisionStatus, cancellationReason?: string, userRoles: string[] = []) {
+    // Validate status is a valid enum value
+    if (!status || !VALID_BOOKING_STATUSES.includes(status)) {
+      throw new Error(`Invalid booking status: ${status}. Must be one of: ${VALID_BOOKING_STATUSES.join(', ')}`);
+    }
+
     const booking = await this.bookingRepository.findById(bookingId);
     if (!booking) throw new Error('Booking not found');
 
