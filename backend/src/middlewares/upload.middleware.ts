@@ -28,8 +28,18 @@ const storage = multer.diskStorage({
 });
 
 const fileFilter = (req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-  const allowedTypes = ['.mp4', '.pdf', '.mkv', '.avi', '.zip', '.docx', '.pptx', '.jpg', '.jpeg', '.png', '.gif'];
   const ext = path.extname(file.originalname).toLowerCase();
+  
+  if (file.fieldname === 'profileImage') {
+    const allowedImageTypes = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    if (allowedImageTypes.includes(ext)) {
+      return cb(null, true);
+    } else {
+      return cb(new Error('Only image files are allowed for profile pictures'));
+    }
+  }
+
+  const allowedTypes = ['.mp4', '.pdf', '.mkv', '.avi', '.zip', '.docx', '.pptx', '.jpg', '.jpeg', '.png', '.gif'];
   
   if (allowedTypes.includes(ext)) {
     cb(null, true);

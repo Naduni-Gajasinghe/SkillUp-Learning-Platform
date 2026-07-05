@@ -19,10 +19,16 @@ export class LessonRepository {
     });
   }
 
-  async findById(id: string) {
+  async findById(id: string, userId?: string) {
     return prisma.lesson.findUnique({
       where: { id },
-      include: { category: true, tags: true, tutor: { select: { fullName: true } } },
+      include: { 
+        category: true, 
+        tags: true, 
+        tutor: { select: { fullName: true } },
+        learnerProgress: userId ? { where: { userId } } : false,
+        views: userId ? { where: { userId } } : false,
+      },
     });
   }
 
@@ -33,7 +39,7 @@ export class LessonRepository {
     });
   }
 
-  async findAll(filters: any) {
+  async findAll(filters: any, userId?: string) {
     const { categoryId, difficulty, isPremium, search } = filters;
     
     return prisma.lesson.findMany({
@@ -46,7 +52,13 @@ export class LessonRepository {
           { description: { contains: search } }
         ] : undefined,
       },
-      include: { category: true, tags: true, tutor: { select: { fullName: true } } },
+      include: { 
+        category: true, 
+        tags: true, 
+        tutor: { select: { fullName: true } },
+        learnerProgress: userId ? { where: { userId } } : false,
+        views: userId ? { where: { userId } } : false,
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

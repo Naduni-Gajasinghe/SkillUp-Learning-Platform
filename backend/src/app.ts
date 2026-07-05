@@ -29,7 +29,9 @@ import path from 'path';
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());

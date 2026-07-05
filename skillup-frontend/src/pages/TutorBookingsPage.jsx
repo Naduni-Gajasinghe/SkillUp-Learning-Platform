@@ -89,9 +89,9 @@ export default function TutorBookingsPage() {
             <div className="shrink-0">
                 {booking.learner?.profileImage ? (
                 <img
-                    src={booking.learner.profileImage.startsWith('http') ? booking.learner.profileImage : `http://localhost:5000/${booking.learner.profileImage}`}
-                    alt={booking.learner.fullName}
-                    className="h-14 w-14 rounded-2xl object-cover border-2 border-white shadow-sm ring-1 ring-slate-100"
+                  src={booking.learner.profileImage.startsWith('http') ? booking.learner.profileImage : `http://localhost:5000${booking.learner.profileImage.startsWith('/') ? '' : '/'}${booking.learner.profileImage}`}
+                  alt={booking.learner.fullName}
+                  className="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm"
                 />
                 ) : (
                 <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-cyan-100 text-lg font-bold text-cyan-700 border border-cyan-200">

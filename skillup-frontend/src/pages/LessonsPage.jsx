@@ -52,12 +52,28 @@ export default function LessonsPage() {
     []
   );
 
+  const statusBadge = useMemo(
+    () => ({
+      OPEN: 'bg-slate-100 text-slate-600 border-slate-200',
+      INPROGRESS: 'bg-blue-50 text-blue-700 border-blue-100',
+      COMPLETED: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    }),
+    []
+  );
+
   const onTrackView = async (lessonId) => {
     await trackLessonView(lessonId);
   };
 
   const onComplete = async (lessonId) => {
-    await completeLesson(lessonId);
+    try {
+      await completeLesson(lessonId);
+      // Refresh lessons to show updated status
+      const lessonData = await fetchLessons(filters);
+      setLessons(lessonData);
+    } catch (error) {
+      console.error('Failed to complete lesson:', error);
+    }
   };
 
   return (
@@ -108,7 +124,14 @@ export default function LessonsPage() {
               <div key={lesson.id} className="group flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md">
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1">
-                    <h2 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{lesson.title}</h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{lesson.title}</h2>
+                      {lesson.status && (
+                        <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${statusBadge[lesson.status]}`}>
+                          {lesson.status === 'INPROGRESS' ? 'In Progress' : lesson.status}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm font-medium text-slate-500">by {lesson.tutor?.fullName || 'Expert Tutor'}</p>
                   </div>
                   <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${difficultyBadge[lesson.difficulty] || 'bg-slate-50 text-slate-700 border-slate-100'}`}>
@@ -132,16 +155,21 @@ export default function LessonsPage() {
                 </div>
 
                 <div className="mt-8 flex items-center gap-3">
-                  <Link to={`/learner/lessons/${lesson.id}`} className="flex-1">
+                  <Link to={`/learner/lessons/${lesson.id}`} className="flex-1" onClick={() => onTrackView(lesson.id)}>
                     <button className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98]">
                       View Lesson
                     </button>
                   </Link>
                   <button 
                     onClick={() => onComplete(lesson.id)}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50 active:scale-[0.98]"
+                    disabled={lesson.status === 'COMPLETED'}
+                    className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all active:scale-[0.98] ${
+                      lesson.status === 'COMPLETED' 
+                        ? 'bg-emerald-50 border-emerald-100 text-emerald-700 cursor-default' 
+                        : 'border-slate-200 text-slate-700 hover:bg-slate-50'
+                    }`}
                   >
-                    Mark Done
+                    {lesson.status === 'COMPLETED' ? 'Done ✓' : 'Mark Done'}
                   </button>
                 </div>
               </div>

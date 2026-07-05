@@ -27,7 +27,7 @@ export class LessonController {
 
   async getAll(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const lessons = await lessonService.getAllLessons(req.query);
+      const lessons = await lessonService.getAllLessons(req.query, req.user?.userId);
       res.status(200).json({
         success: true,
         data: lessons,

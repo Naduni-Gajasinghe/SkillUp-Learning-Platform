@@ -123,7 +123,7 @@ export default function TutorSearchPage() {
                 <div className="flex items-center gap-5 mb-6">
                   {tutor.profileImage ? (
                     <img
-                      src={tutor.profileImage.startsWith('http') ? tutor.profileImage : `http://localhost:5000/${tutor.profileImage}`}
+                      src={tutor.profileImage.startsWith('http') ? tutor.profileImage : `http://localhost:5000${tutor.profileImage.startsWith('/') ? '' : '/'}${tutor.profileImage}`}
                       alt={tutor.fullName}
                       className="h-20 w-20 rounded-3xl object-cover border-4 border-white shadow-xl shadow-slate-200 group-hover:scale-105 transition-transform duration-500"
                     />

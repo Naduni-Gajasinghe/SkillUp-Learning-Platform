@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
@@ -109,7 +109,7 @@ export default function LearnerBookingsPage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-600"></div>
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-cyan-600"></div>
       </div>
     );
   }
@@ -244,38 +244,41 @@ export default function LearnerBookingsPage() {
 
         <div className="space-y-6">
           {/* Payment card */}
-          <Card className="bg-slate-900 text-white border-none shadow-xl shadow-slate-200">
-            <h2 className="text-xl font-bold flex items-center gap-2 mb-2">
+          <Card className="bg-white border-2 border-slate-200 shadow-xl shadow-slate-200/50 p-6">
+            <h2 className="text-xl font-bold flex items-center gap-2 mb-2 text-slate-900">
                 <Icons.CreditCard />
                 Quick Payment
             </h2>
-            <p className="text-slate-400 text-xs mb-6">Complete payment for your confirmed sessions.</p>
+            <p className="text-slate-500 text-xs mb-6 font-medium">Complete payment for your confirmed sessions.</p>
             
             <form className="space-y-4" onSubmit={onPay}>
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Select Session</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Select Session</label>
                 <select
-                    className="w-full rounded-xl bg-white/10 border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all appearance-none"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all cursor-pointer"
                     value={paymentForm.bookingId}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, bookingId: e.target.value }))}
                     required
                 >
-                    <option value="" className="text-slate-900">Choose a booking...</option>
+                    <option value="">Choose a booking...</option>
                     {payableBookings.map((booking) => (
-                    <option key={booking.id} value={booking.id} className="text-slate-900">
+                    <option key={booking.id} value={booking.id}>
                         {booking.tutor?.fullName} · {new Date(booking.startTime).toLocaleDateString()}
                     </option>
                     ))}
+                    {payableBookings.length === 0 && (
+                        <option disabled>No sessions available</option>
+                    )}
                 </select>
               </div>
               
               <div>
-                <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Amount (LKR)</label>
+                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Amount (LKR)</label>
                 <input
                     type="number"
                     min="1"
                     step="0.01"
-                    className="w-full rounded-xl bg-white/10 border border-white/10 px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder:text-slate-500"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition-all placeholder:text-slate-400"
                     placeholder="Enter amount"
                     value={paymentForm.amount}
                     onChange={(e) => setPaymentForm((prev) => ({ ...prev, amount: e.target.value }))}
@@ -285,35 +288,35 @@ export default function LearnerBookingsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Method</label>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Method</label>
                     <select
-                        className="w-full rounded-xl bg-white/10 border border-white/10 px-3 py-3 text-xs text-white focus:outline-none transition-all appearance-none"
+                        className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-xs text-slate-900 focus:outline-none transition-all cursor-pointer"
                         value={paymentForm.paymentMethod}
                         onChange={(e) => setPaymentForm((prev) => ({ ...prev, paymentMethod: e.target.value }))}
                     >
-                        <option value="CARD" className="text-slate-900">Card</option>
-                        <option value="WALLET" className="text-slate-900">Wallet</option>
+                        <option value="CARD">Card</option>
+                        <option value="WALLET">Wallet</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Gateway</label>
+                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1.5 ml-1">Gateway</label>
                     <select
-                        className="w-full rounded-xl bg-white/10 border border-white/10 px-3 py-3 text-xs text-white focus:outline-none transition-all appearance-none"
+                        className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 text-xs text-slate-900 focus:outline-none transition-all cursor-pointer"
                         value={paymentForm.gateway}
                         onChange={(e) => setPaymentForm((prev) => ({ ...prev, gateway: e.target.value }))}
                     >
-                        <option value="STRIPE" className="text-slate-900">Stripe</option>
-                        <option value="PAYPAL" className="text-slate-900">PayPal</option>
-                        <option value="MOCK" className="text-slate-900">Mock</option>
+                        <option value="STRIPE">Stripe</option>
+                        <option value="PAYPAL">PayPal</option>
+                        <option value="MOCK">Mock</option>
                     </select>
                   </div>
               </div>
 
-              <Button type="submit" className="w-full h-12 bg-cyan-500 hover:bg-cyan-400 text-white border-none mt-4 font-bold">
+              <Button type="submit" className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white border-none mt-4 font-bold shadow-lg shadow-slate-200 transition-all active:scale-[0.98]">
                 Complete Payment
               </Button>
               {paymentResult && (
-                  <div className="mt-4 p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-bold text-center uppercase tracking-widest animate-pulse">
+                  <div className="mt-4 p-3 rounded-xl bg-cyan-50 border border-cyan-100 text-cyan-700 text-[10px] font-bold text-center uppercase tracking-widest animate-pulse">
                     {paymentResult}
                   </div>
               )}

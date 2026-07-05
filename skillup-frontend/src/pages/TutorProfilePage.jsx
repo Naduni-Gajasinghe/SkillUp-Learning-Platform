@@ -167,7 +167,7 @@ export default function TutorProfilePage() {
                     <div className="relative -mt-16 mb-6 flex items-end justify-between">
                         {tutor.profileImage ? (
                             <img
-                            src={tutor.profileImage.startsWith('http') ? tutor.profileImage : `http://localhost:5000/${tutor.profileImage}`}
+                            src={tutor.profileImage.startsWith('http') ? tutor.profileImage : `http://localhost:5000${tutor.profileImage.startsWith('/') ? '' : '/'}${tutor.profileImage}`}
                             alt={tutor.fullName}
                             className="h-32 w-32 rounded-3xl object-cover border-8 border-white shadow-xl"
                             />
