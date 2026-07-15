@@ -56,8 +56,8 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Admin Dashboard</h1>
-        <p className="text-sm text-slate-600">Monitor tutor approvals, platform health, and payment gateway activity.</p>
+        <h1 className="text-3xl font-bold text-skill-dark">Admin Dashboard</h1>
+        <p className="text-sm text-skill-dark/80">Monitor tutor approvals, platform health, and payment gateway activity.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -70,23 +70,23 @@ export default function AdminDashboardPage() {
       <Card>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold text-slate-900">Tutor approval queue</h2>
-            <p className="text-sm text-slate-500">Review applications before they can teach on the platform.</p>
+            <h2 className="text-lg font-semibold text-skill-dark">Tutor approval queue</h2>
+            <p className="text-sm text-skill-dark/70">Review applications before they can teach on the platform.</p>
           </div>
-          <div className="text-sm text-slate-500">{pendingTutors.length} pending application(s)</div>
+          <div className="text-sm text-skill-dark/70">{pendingTutors.length} pending application(s)</div>
         </div>
 
         <div className="mt-4 space-y-3">
           {pendingTutors.map((tutor) => (
-            <div key={tutor.id} className="rounded-xl border border-slate-200 p-4">
+            <div key={tutor.id} className="rounded-ui border border-skill-border bg-[#fbfdfc] p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-semibold text-slate-900">{tutor.user?.fullName || 'Tutor applicant'}</p>
-                  <p className="text-sm text-slate-600">{tutor.user?.email}</p>
-                  <p className="mt-1 text-sm text-slate-700">Expertise: {tutor.expertise || 'Not provided'}</p>
-                  <p className="text-sm text-slate-700">Experience: {tutor.experience ?? 'N/A'} years</p>
-                  <p className="text-sm text-slate-700">Hourly rate: {tutor.hourlyRate ?? 'N/A'}</p>
-                  <p className="text-xs uppercase tracking-wide text-slate-500">Status: {tutor.verificationStatus}</p>
+                  <p className="font-semibold text-skill-dark">{tutor.user?.fullName || 'Tutor applicant'}</p>
+                  <p className="text-sm text-skill-dark/75">{tutor.user?.email}</p>
+                  <p className="mt-1 text-sm text-skill-dark/85">Expertise: {tutor.expertise || 'Not provided'}</p>
+                  <p className="text-sm text-skill-dark/85">Experience: {tutor.experience ?? 'N/A'} years</p>
+                  <p className="text-sm text-skill-dark/85">Hourly rate: {tutor.hourlyRate ?? 'N/A'}</p>
+                  <p className="text-xs uppercase tracking-wide text-skill-dark/70">Status: {tutor.verificationStatus}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={() => onTutorAction(tutor.userId, 'APPROVED')}>Approve</Button>
@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           ))}
-          {pendingTutors.length === 0 ? <p className="text-sm text-slate-500">No pending tutor applications.</p> : null}
+          {pendingTutors.length === 0 ? <p className="text-sm text-skill-dark/70">No pending tutor applications.</p> : null}
         </div>
       </Card>
 
@@ -105,10 +105,10 @@ export default function AdminDashboardPage() {
         <Card>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-semibold text-slate-900">Payment gateway workflow</h2>
-              <p className="text-sm text-slate-500">Review pending transactions and finalize gateway status.</p>
+              <h2 className="text-lg font-semibold text-skill-dark">Payment gateway workflow</h2>
+              <p className="text-sm text-skill-dark/70">Review pending transactions and finalize gateway status.</p>
             </div>
-            <div className="text-sm text-slate-500">Revenue: {paymentSummary?.totalRevenue || 0}</div>
+            <div className="text-sm text-skill-dark/70">Revenue: {paymentSummary?.totalRevenue || 0}</div>
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -119,15 +119,15 @@ export default function AdminDashboardPage() {
           </div>
 
           <div className="mt-6 space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Pending review</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-skill-dark/65">Pending review</h3>
             {paymentReviewQueue.map((payment) => (
-              <div key={payment.id} className="rounded-xl border border-slate-200 p-4">
+              <div key={payment.id} className="rounded-ui border border-skill-border bg-[#fbfdfc] p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="font-semibold text-slate-900">{payment.purpose}</p>
-                    <p className="text-sm text-slate-600">{payment.user?.fullName || payment.user?.email}</p>
-                    <p className="text-sm text-slate-700">Amount: {payment.amount}</p>
-                    <p className="text-xs text-slate-500">Gateway: {payment.paymentMethod}</p>
+                    <p className="font-semibold text-skill-dark">{payment.purpose}</p>
+                    <p className="text-sm text-skill-dark/75">{payment.user?.fullName || payment.user?.email}</p>
+                    <p className="text-sm text-skill-dark/85">Amount: {payment.amount}</p>
+                    <p className="text-xs text-skill-dark/65">Gateway: {payment.paymentMethod}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {paymentActions.map((action) => (
@@ -143,67 +143,67 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
             ))}
-            {paymentReviewQueue.length === 0 ? <p className="text-sm text-slate-500">No pending payment reviews.</p> : null}
+            {paymentReviewQueue.length === 0 ? <p className="text-sm text-skill-dark/70">No pending payment reviews.</p> : null}
           </div>
 
           <div className="mt-6 space-y-3">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Recent payments</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-skill-dark/65">Recent payments</h3>
             {recentPayments.map((payment) => (
-              <div key={payment.id} className="rounded-xl border border-slate-200 p-3 text-sm">
+              <div key={payment.id} className="rounded-ui border border-skill-border p-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="font-medium text-slate-900">{payment.purpose}</p>
-                    <p className="text-slate-600">{payment.user?.fullName || payment.user?.email}</p>
+                    <p className="font-medium text-skill-dark">{payment.purpose}</p>
+                    <p className="text-skill-dark/75">{payment.user?.fullName || payment.user?.email}</p>
                   </div>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700">
+                  <span className="rounded-full bg-[#edf3ef] px-3 py-1 text-xs font-semibold text-skill-dark/85">
                     {payment.status}
                   </span>
                 </div>
-                <p className="mt-2 text-slate-700">{payment.paymentMethod} · {payment.amount}</p>
+                <p className="mt-2 text-skill-dark/85">{payment.paymentMethod} · {payment.amount}</p>
               </div>
             ))}
-            {recentPayments.length === 0 ? <p className="text-sm text-slate-500">No payment history yet.</p> : null}
+            {recentPayments.length === 0 ? <p className="text-sm text-skill-dark/70">No payment history yet.</p> : null}
           </div>
         </Card>
 
         <Card>
-          <h2 className="text-lg font-semibold text-slate-900">Platform snapshot</h2>
-          <div className="mt-4 space-y-3 text-sm text-slate-700">
+          <h2 className="text-lg font-semibold text-skill-dark">Platform snapshot</h2>
+          <div className="mt-4 space-y-3 text-sm text-skill-dark/85">
             <p>Subscription plans</p>
             <div className="space-y-2">
               {subscriptions.map((subscription) => (
-                <div key={subscription.id} className="rounded-xl border border-slate-200 p-3">
-                  <p className="font-medium text-slate-900">{subscription.user?.fullName || 'User'}</p>
-                  <p className="text-slate-600">Plan: {subscription.plan}</p>
-                  <p className="text-slate-600">Status: {subscription.status}</p>
+                <div key={subscription.id} className="rounded-ui border border-skill-border p-3">
+                  <p className="font-medium text-skill-dark">{subscription.user?.fullName || 'User'}</p>
+                  <p className="text-skill-dark/75">Plan: {subscription.plan}</p>
+                  <p className="text-skill-dark/75">Status: {subscription.status}</p>
                 </div>
               ))}
-              {subscriptions.length === 0 ? <p className="text-slate-500">No subscriptions yet.</p> : null}
+              {subscriptions.length === 0 ? <p className="text-skill-dark/70">No subscriptions yet.</p> : null}
             </div>
 
             <div>
-              <p className="mb-2 font-medium text-slate-900">Bookings by status</p>
+              <p className="mb-2 font-medium text-skill-dark">Bookings by status</p>
               <div className="space-y-2">
                 {bookingsByStatus.map((entry) => (
-                  <div key={entry.status} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                  <div key={entry.status} className="flex items-center justify-between rounded-ui bg-[#edf3ef] px-3 py-2">
                     <span>{entry.status}</span>
-                    <span className="font-semibold text-slate-900">{entry._count?._all || 0}</span>
+                    <span className="font-semibold text-skill-dark">{entry._count?._all || 0}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             <div>
-              <p className="mb-2 font-medium text-slate-900">Gateway breakdown</p>
+              <p className="mb-2 font-medium text-skill-dark">Gateway breakdown</p>
               <div className="space-y-2">
                 {Object.entries(paymentSummary?.gatewayBreakdown || {}).map(([gateway, count]) => (
-                  <div key={gateway} className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2">
+                  <div key={gateway} className="flex items-center justify-between rounded-ui bg-[#edf3ef] px-3 py-2">
                     <span>{gateway}</span>
-                    <span className="font-semibold text-slate-900">{count}</span>
+                    <span className="font-semibold text-skill-dark">{count}</span>
                   </div>
                 ))}
                 {Object.keys(paymentSummary?.gatewayBreakdown || {}).length === 0 ? (
-                  <p className="text-slate-500">No gateway activity yet.</p>
+                  <p className="text-skill-dark/70">No gateway activity yet.</p>
                 ) : null}
               </div>
             </div>

@@ -6,16 +6,16 @@ export default function Button({
   ...props
 }) {
   const variants = {
-    primary: 'bg-cyan-600 text-white hover:bg-cyan-700',
-    secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
-    danger: 'bg-rose-600 text-white hover:bg-rose-700',
-    ghost: 'bg-transparent text-slate-700 hover:bg-slate-100',
+    primary: 'bg-skill-accent text-white hover:bg-skill-accentHover shadow-soft',
+    secondary: 'bg-white text-skill-dark border border-skill-border hover:bg-[#f5f8f4]',
+    danger: 'bg-skill-error text-white hover:brightness-95 shadow-soft',
+    ghost: 'bg-transparent text-skill-dark hover:bg-[#e5eeea]',
   };
 
   return (
     <button
       type={type}
-      className={`rounded-lg px-4 py-2 text-sm font-semibold transition ${variants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-btn px-4 py-2.5 text-sm font-medium tracking-[0.02em] transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-70 ${variants[variant]} ${className}`}
       {...props}
     >
       {children}

@@ -1,14 +1,12 @@
 import { useEffect, useState } from 'react';
-import Card from '../components/ui/Card';
-import StatCard from '../components/ui/StatCard';
 import { fetchTutorAnalytics, fetchNotifications, markAllNotificationsRead } from '../services/tutorService';
 
 const BookIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-600"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-skill-accent"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M8 7h6"/><path d="M8 11h8"/></svg>
 );
 
 const CalendarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-skill-dark"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
 );
 
 const EyeIcon = () => (
@@ -16,7 +14,7 @@ const EyeIcon = () => (
 );
 
 const DollarIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-600"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-skill-accentHover"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
 );
 
 const BellIcon = () => (
@@ -56,7 +54,7 @@ export default function TutorDashboardPage() {
   if (loading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-skill-border border-t-skill-accent"></div>
       </div>
     );
   }
@@ -65,66 +63,66 @@ export default function TutorDashboardPage() {
     <div className="mx-auto max-w-7xl space-y-8 p-6 lg:p-8">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Tutor Dashboard</h1>
-          <p className="mt-2 text-slate-600">Monitor your performance and manage your notifications.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-skill-dark">Tutor Dashboard</h1>
+          <p className="mt-2 text-skill-dark/80">Monitor your performance and manage your notifications.</p>
         </div>
       </header>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-card border border-skill-border bg-white p-6 shadow-soft transition-all hover:shadow-card">
           <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-cyan-50 p-3">
+            <div className="rounded-ui bg-[#e6f5ee] p-3">
               <BookIcon />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Total Lessons</p>
-              <p className="text-2xl font-bold text-slate-900">{analytics?.lessonCount || 0}</p>
+              <p className="text-sm font-medium text-skill-dark/75">Total Lessons</p>
+              <p className="text-2xl font-bold text-skill-dark">{analytics?.lessonCount || 0}</p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-card border border-skill-border bg-white p-6 shadow-soft transition-all hover:shadow-card">
           <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-indigo-50 p-3">
+            <div className="rounded-ui bg-[#ebf0ea] p-3">
               <CalendarIcon />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Bookings</p>
-              <p className="text-2xl font-bold text-slate-900">{analytics?.totalBookings || 0}</p>
+              <p className="text-sm font-medium text-skill-dark/75">Bookings</p>
+              <p className="text-2xl font-bold text-skill-dark">{analytics?.totalBookings || 0}</p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-card border border-skill-border bg-white p-6 shadow-soft transition-all hover:shadow-card">
           <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-amber-50 p-3">
+            <div className="rounded-ui bg-[#fff5de] p-3">
               <EyeIcon />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Total Views</p>
-              <p className="text-2xl font-bold text-slate-900">{analytics?.totalViews || 0}</p>
+              <p className="text-sm font-medium text-skill-dark/75">Total Views</p>
+              <p className="text-2xl font-bold text-skill-dark">{analytics?.totalViews || 0}</p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-card border border-skill-border bg-white p-6 shadow-soft transition-all hover:shadow-card">
           <div className="flex items-center gap-4">
-            <div className="rounded-lg bg-emerald-50 p-3">
+            <div className="rounded-ui bg-[#e6f5ee] p-3">
               <DollarIcon />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">Total Earnings</p>
-              <p className="text-2xl font-bold text-slate-900">${analytics?.totalEarnings || 0}</p>
+              <p className="text-sm font-medium text-skill-dark/75">Total Earnings</p>
+              <p className="text-2xl font-bold text-skill-dark">${analytics?.totalEarnings || 0}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between border-b border-slate-100 p-6">
-          <h2 className="text-lg font-bold text-slate-900">Notifications</h2>
+      <section className="rounded-card border border-skill-border bg-white shadow-soft overflow-hidden">
+        <div className="flex items-center justify-between border-b border-skill-border p-6">
+          <h2 className="text-lg font-semibold text-skill-dark">Notifications</h2>
           <button 
-            className="text-sm font-semibold text-indigo-600 hover:text-indigo-500 transition-colors" 
+            className="text-sm font-semibold text-skill-accent hover:text-skill-accentHover transition-colors" 
             onClick={onMarkRead}
           >
             Mark all as read
@@ -137,10 +135,10 @@ export default function TutorDashboardPage() {
               {notifications.map((notification) => (
                 <li key={notification.id} className="py-4 first:pt-0 last:pb-0">
                   <div className="flex gap-4">
-                    <div className="mt-1 h-2 w-2 rounded-full bg-indigo-600 shrink-0"></div>
+                    <div className="mt-1 h-2 w-2 rounded-full bg-skill-accent shrink-0"></div>
                     <div className="space-y-1">
-                      <p className="font-semibold text-slate-900">{notification.title}</p>
-                      <p className="text-sm text-slate-600">{notification.message}</p>
+                      <p className="font-semibold text-skill-dark">{notification.title}</p>
+                      <p className="text-sm text-skill-dark/80">{notification.message}</p>
                     </div>
                   </div>
                 </li>
@@ -148,11 +146,11 @@ export default function TutorDashboardPage() {
             </ul>
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="rounded-full bg-slate-50 p-4 text-slate-400">
+              <div className="rounded-full bg-[#edf3ef] p-4 text-skill-dark/50">
                 <BellIcon />
               </div>
-              <p className="mt-4 text-slate-600 font-medium">No new notifications</p>
-              <p className="text-sm text-slate-500">We'll let you know when something important happens.</p>
+              <p className="mt-4 text-skill-dark/80 font-medium">No new notifications</p>
+              <p className="text-sm text-skill-dark/60">We'll let you know when something important happens.</p>
             </div>
           )}
         </div>

@@ -67,28 +67,28 @@ export default function LoginPage() {
     >
       <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-skill-dark/50">
             <Icons.Mail />
           </div>
           <Input
             label=""
             type="email"
             placeholder="Email Address"
-            className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all"
+            className="pl-10 h-12 bg-[#f6faf8]"
             error={errors.email?.message}
             {...register('email', { required: 'Email is required' })}
           />
         </div>
 
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-skill-dark/50">
             <Icons.Lock />
           </div>
           <Input
             label=""
             type="password"
             placeholder="Password"
-            className="pl-10 h-12 bg-slate-50 border-slate-200 focus:bg-white transition-all"
+            className="pl-10 h-12 bg-[#f6faf8]"
             error={errors.password?.message}
             {...register('password', { required: 'Password is required' })}
           />
@@ -96,10 +96,10 @@ export default function LoginPage() {
 
         <div className="flex items-center justify-between">
             <div className="flex items-center">
-                <input id="remember-me" type="checkbox" className="h-4 w-4 text-cyan-600 focus:ring-cyan-500 border-slate-300 rounded" />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-700">Remember me</label>
+                <input id="remember-me" type="checkbox" className="h-4 w-4 rounded border-skill-border text-skill-accent focus:ring-skill-accent" />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-skill-dark/80">Remember me</label>
             </div>
-            <a href="#" className="text-sm font-medium text-cyan-600 hover:text-cyan-500">Forgot password?</a>
+            <a href="#" className="text-sm font-medium text-skill-accent hover:text-skill-accentHover">Forgot password?</a>
         </div>
 
         <Button type="submit" className="w-full h-12 text-base flex items-center justify-center gap-2 group" disabled={isLoading}>
@@ -108,9 +108,9 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-        <p className="text-sm text-slate-600">
-          New to SkillUp? <Link to="/register" className="font-bold text-cyan-600 hover:text-cyan-500 underline underline-offset-4">Create an account</Link>
+      <div className="mt-8 pt-6 border-t border-skill-border text-center">
+        <p className="text-sm text-skill-dark/80">
+          New to SkillUp? <Link to="/register" className="font-semibold text-skill-accent hover:text-skill-accentHover underline underline-offset-4">Create an account</Link>
         </p>
       </div>
     </AuthLayout>

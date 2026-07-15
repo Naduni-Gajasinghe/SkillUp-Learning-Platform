@@ -74,6 +74,7 @@ export default function DashboardLayout({ role }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const links = useMemo(() => {
     if (role === 'tutor') return tutorLinks;
@@ -86,51 +87,60 @@ export default function DashboardLayout({ role }) {
     navigate('/login');
   };
 
+  const renderNavLinks = (isMobile = false) => (
+    <nav className="space-y-2">
+      {links.map((link) => (
+        <NavLink
+          key={link.to}
+          to={link.to}
+          onClick={() => {
+            if (isMobile) setMenuOpen(false);
+          }}
+          className={({ isActive }) =>
+            `group flex items-center gap-3 rounded-ui px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
+              isActive
+                ? 'bg-skill-accent text-white shadow-soft'
+                : 'text-[#dbe5e0] hover:bg-[#636a67] hover:text-white'
+            }`
+          }
+        >
+          <span className="opacity-90 group-hover:opacity-100">
+            <link.icon />
+          </span>
+          {link.label}
+        </NavLink>
+      ))}
+    </nav>
+  );
+
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
+    <div className="flex h-screen overflow-hidden bg-skill-bg font-sans text-skill-dark">
       {/* Sidebar */}
-      <aside className="hidden md:flex flex-col w-64 bg-white border-r border-slate-200">
+      <aside className="hidden md:flex flex-col w-72 bg-skill-dark border-r border-[#67716d] shadow-card">
         {/* Logo Section */}
-        <div className="flex items-center h-16 px-6 border-b border-slate-100">
+        <div className="flex items-center h-16 px-6 border-b border-[#67716d]">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-cyan-600 text-white font-bold group-hover:bg-cyan-700 transition-colors">
+            <div className="flex items-center justify-center w-9 h-9 rounded-ui bg-skill-accent text-white font-bold group-hover:bg-skill-accentHover transition-colors">
               S
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">Skill<span className="text-cyan-600">Up</span></span>
+            <span className="text-xl font-bold tracking-tight text-white">Skill<span className="text-skill-accent">Up</span></span>
           </Link>
         </div>
 
         {/* Navigation Links */}
         <div className="flex-1 px-4 py-6 overflow-y-auto">
-          <div className="mb-4 px-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <div className="mb-4 px-2 text-[11px] font-semibold tracking-[0.12em] text-[#c8d4ce] uppercase">
             Main Menu
           </div>
-          <nav className="space-y-1">
-            {links.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
-                    isActive 
-                      ? 'bg-cyan-50 text-cyan-700 shadow-sm ring-1 ring-cyan-200' 
-                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-                  }`
-                }
-              >
-                <link.icon />
-                {link.label}
-              </NavLink>
-            ))}
-          </nav>
+          {renderNavLinks()}
 
-          <div className="mt-8 mb-4 px-2 text-[10px] font-bold tracking-wider text-slate-400 uppercase">
+          <div className="mt-8 mb-4 px-2 text-[11px] font-semibold tracking-[0.12em] text-[#c8d4ce] uppercase">
             System
           </div>
-          <nav className="space-y-1">
-             <button 
+          <nav className="space-y-2">
+             <button
               onClick={onLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-600 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition-all duration-200"
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#dbe5e0] rounded-ui hover:bg-[#6a5654] hover:text-white transition-all duration-200"
             >
               <Icons.Logout />
               Logout
@@ -139,40 +149,91 @@ export default function DashboardLayout({ role }) {
         </div>
 
         {/* User Profile Summary */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div className="flex items-center gap-3 p-2 rounded-xl border border-transparent hover:border-slate-200 hover:bg-white transition-all cursor-pointer">
-            <div className="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-700 font-bold border border-cyan-200 uppercase">
+        <div className="p-4 border-t border-[#67716d] bg-[#4a4f4d]">
+          <div className="flex items-center gap-3 p-2 rounded-ui border border-[#67716d] bg-[#5a615f] transition-all cursor-pointer">
+            <div className="w-10 h-10 rounded-full bg-[#d9eee5] flex items-center justify-center text-skill-dark font-bold border border-[#b6d7c9] uppercase">
               {user?.fullName?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-slate-900 truncate">{user?.fullName || 'User'}</p>
-              <p className="text-xs text-slate-500 truncate capitalize">{role || 'Learner'}</p>
+              <p className="text-sm font-semibold text-white truncate">{user?.fullName || 'User'}</p>
+              <p className="text-xs text-[#d2ddd8] truncate capitalize">{role || 'Learner'}</p>
             </div>
           </div>
         </div>
       </aside>
 
+      {menuOpen ? (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <button
+            type="button"
+            aria-label="Close menu overlay"
+            onClick={() => setMenuOpen(false)}
+            className="absolute inset-0 bg-[#23292799]"
+          />
+          <div className="relative h-full w-72 bg-skill-dark p-4 shadow-card animate-fadeUp">
+            <div className="mb-6 flex items-center justify-between">
+              <Link to="/" className="flex items-center gap-2" onClick={() => setMenuOpen(false)}>
+                <div className="flex items-center justify-center w-9 h-9 rounded-ui bg-skill-accent text-white font-bold">S</div>
+                <span className="text-xl font-bold tracking-tight text-white">Skill<span className="text-skill-accent">Up</span></span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => setMenuOpen(false)}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-ui border border-[#6f7976] text-white"
+                aria-label="Close menu"
+              >
+                X
+              </button>
+            </div>
+
+            <div className="mb-3 px-2 text-[11px] font-semibold tracking-[0.12em] text-[#c8d4ce] uppercase">
+              Main Menu
+            </div>
+            {renderNavLinks(true)}
+
+            <div className="mt-8 mb-3 px-2 text-[11px] font-semibold tracking-[0.12em] text-[#c8d4ce] uppercase">
+              System
+            </div>
+            <button
+              onClick={onLogout}
+              className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-[#dbe5e0] rounded-ui hover:bg-[#6a5654] hover:text-white transition-all duration-200"
+            >
+              <Icons.Logout />
+              Logout
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Navbar */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-40">
+        <header className="h-16 bg-[#f7faf8] border-b border-skill-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-40 shadow-sm">
           <div className="flex items-center gap-4 flex-1">
+             <button
+               type="button"
+               onClick={() => setMenuOpen(true)}
+               className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-ui border border-skill-border bg-white text-skill-dark"
+               aria-label="Open sidebar menu"
+             >
+               ☰
+             </button>
              {/* Search Placeholder */}
-             <div className="hidden md:flex items-center w-full max-w-md h-10 px-3 bg-slate-100 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-200/50 transition-colors cursor-text group">
+             <div className="hidden md:flex items-center w-full max-w-md h-10 px-3 bg-white border border-skill-border rounded-input text-skill-dark/70 hover:bg-[#f7faf8] transition-colors cursor-text group">
                 <Icons.Search />
                 <span className="ml-2 text-sm">Quick search...</span>
-                <span className="ml-auto text-[10px] font-semibold bg-white border border-slate-300 px-1.5 py-0.5 rounded shadow-sm text-slate-400">⌘K</span>
+                <span className="ml-auto text-[10px] font-semibold bg-[#f3f7f5] border border-skill-border px-1.5 py-0.5 rounded text-skill-dark/50">⌘K</span>
              </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors relative">
+            <button className="p-2 text-skill-dark/70 hover:bg-white rounded-ui transition-colors relative border border-transparent hover:border-skill-border">
               <Icons.Bell />
-              <span className="absolute top-2 right-2.5 w-2 h-2 bg-rose-500 border-2 border-white rounded-full"></span>
+              <span className="absolute top-2 right-2.5 w-2 h-2 bg-skill-error border-2 border-white rounded-full"></span>
             </button>
-            <div className="h-6 w-px bg-slate-200 mx-1"></div>
-            <button className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-slate-100 transition-colors">
-              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-medium text-xs">
+            <div className="h-6 w-px bg-skill-border mx-1"></div>
+            <button className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-white transition-colors border border-transparent hover:border-skill-border">
+              <div className="w-8 h-8 rounded-full bg-[#e1ece7] flex items-center justify-center text-skill-dark font-medium text-xs">
                 {user?.fullName?.split(' ').map(n => n[0]).join('') || 'U'}
               </div>
             </button>
@@ -180,7 +241,7 @@ export default function DashboardLayout({ role }) {
         </header>
 
         {/* Content Section */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 app-gradient">
           <div className="max-w-6xl mx-auto">
             <Outlet />
           </div>

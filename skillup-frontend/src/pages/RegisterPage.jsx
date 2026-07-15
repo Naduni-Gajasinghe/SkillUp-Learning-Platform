@@ -67,41 +67,41 @@ export default function RegisterPage() {
     >
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-skill-dark/50">
             <Icons.User />
           </div>
           <Input
             label=""
             placeholder="Full Name"
-            className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+            className="pl-10 h-11 bg-[#f6faf8]"
             error={errors.fullName?.message}
             {...register('fullName', { required: 'Full name is required' })}
           />
         </div>
 
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-skill-dark/50">
             <Icons.Mail />
           </div>
           <Input
             label=""
             type="email"
             placeholder="Email Address"
-            className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+            className="pl-10 h-11 bg-[#f6faf8]"
             error={errors.email?.message}
             {...register('email', { required: 'Email is required' })}
           />
         </div>
 
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-skill-dark/50">
             <Icons.Lock />
           </div>
           <Input
             label=""
             type="password"
             placeholder="Password (min. 8 characters)"
-            className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+            className="pl-10 h-11 bg-[#f6faf8]"
             error={errors.password?.message}
             {...register('password', {
               required: 'Password is required',
@@ -111,17 +111,17 @@ export default function RegisterPage() {
         </div>
 
         <div className="flex flex-col space-y-2">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">I want to join as:</span>
+          <span className="text-xs font-semibold text-skill-dark/70 uppercase tracking-wider ml-1">I want to join as:</span>
           <div className="grid grid-cols-2 gap-3">
             {['LEARNER', 'TUTOR'].map((r) => (
                <label key={r} className={`relative flex items-center justify-center p-3 rounded-xl border cursor-pointer transition-all ${
-                 selectedRole === r ? 'bg-cyan-50 border-cyan-500 text-cyan-700 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                 selectedRole === r ? 'bg-[#e6f5ee] border-skill-accent text-skill-accentHover shadow-soft' : 'bg-white border-skill-border text-skill-dark/80 hover:border-[#c5d4cd]'
                }`}>
                   <input type="radio" value={r} className="sr-only" {...register('role')} />
                   <span className="text-sm font-semibold">{r.charAt(0) + r.slice(1).toLowerCase()}</span>
                   {selectedRole === r && (
                       <div className="absolute top-1 right-1">
-                          <svg className="w-4 h-4 text-cyan-600" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
+                          <svg className="w-4 h-4 text-skill-accent" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
                       </div>
                   )}
                </label>
@@ -131,13 +131,13 @@ export default function RegisterPage() {
 
         {selectedRole === 'TUTOR' && (
            <div className="relative animate-in fade-in slide-in-from-top-2 duration-300">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-skill-dark/50">
                 <Icons.Briefcase />
               </div>
               <Input
                 label=""
                 placeholder="What is your expertise?"
-                className="pl-10 h-11 bg-slate-50 border-slate-200 focus:bg-white"
+                className="pl-10 h-11 bg-[#f6faf8]"
                 error={errors.expertise?.message}
                 {...register('expertise', { required: 'Expertise is required for tutors' })}
               />
@@ -149,9 +149,9 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <div className="mt-8 pt-6 border-t border-slate-100 text-center">
-        <p className="text-sm text-slate-600">
-          Already have an account? <Link to="/login" className="font-bold text-cyan-600 hover:text-cyan-500 underline underline-offset-4">Sign In</Link>
+      <div className="mt-8 pt-6 border-t border-skill-border text-center">
+        <p className="text-sm text-skill-dark/80">
+          Already have an account? <Link to="/login" className="font-semibold text-skill-accent hover:text-skill-accentHover underline underline-offset-4">Sign In</Link>
         </p>
       </div>
     </AuthLayout>
