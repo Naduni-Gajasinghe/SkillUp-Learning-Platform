@@ -94,6 +94,7 @@ model Booking {
   status          BookingStatus @default(SCHEDULED)
   notes           String?       @db.Text
   cancellationReason String?    @db.Text
+  zoomLink           String?
 
   learnerId       String
   learner         User          @relation("LearnerBookings", fields: [learnerId], references: [id])
