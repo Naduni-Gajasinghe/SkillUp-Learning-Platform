@@ -10,6 +10,7 @@ export const createBookingSchema = z.object({
 export const updateBookingStatusSchema = z.object({
   status: z.enum(['CONFIRMED', 'REJECTED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']),
   cancellationReason: z.string().optional(),
+  zoomLink: z.string().url().optional(),
 });
 
 export const cancelBookingSchema = z.object({

@@ -95,7 +95,7 @@ export class BookingRepository {
     } as any);
   }
 
-  async updateStatus(id: string, status: string, cancellationReason?: string) {
+  async updateStatus(id: string, status: string, cancellationReason?: string, zoomLink?: string) {
     // Validate status before updating
     if (!status || !VALID_BOOKING_STATUSES.includes(status)) {
       throw new Error(`Invalid booking status: ${status}. Must be one of: ${VALID_BOOKING_STATUSES.join(', ')}`);
@@ -104,6 +104,9 @@ export class BookingRepository {
     const updateData: any = { status };
     if (cancellationReason) {
       updateData.cancellationReason = cancellationReason;
+    }
+    if (zoomLink) {
+      updateData.zoomLink = zoomLink;
     }
 
     return prisma.booking.update({

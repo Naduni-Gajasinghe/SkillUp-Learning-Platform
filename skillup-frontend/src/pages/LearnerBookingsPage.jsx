@@ -193,6 +193,15 @@ export default function LearnerBookingsPage() {
                         </div>
                       )}
 
+                      {booking.zoomLink && (
+                        <div className="mt-4 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700 border border-emerald-100">
+                          <strong className="block text-xs font-bold mb-1">Zoom Link</strong>
+                          <a href={booking.zoomLink} target="_blank" rel="noreferrer" className="text-sm underline">
+                            Join session
+                          </a>
+                        </div>
+                      )}
+
                       <div className="mt-5 flex items-center justify-between pt-4 border-t border-slate-50">
                         <div className="flex items-center gap-2">
                             <div className={`h-2 w-2 rounded-full ${booking.payment?.status === 'COMPLETED' ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>

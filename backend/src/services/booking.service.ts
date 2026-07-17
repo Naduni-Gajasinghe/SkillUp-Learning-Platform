@@ -177,7 +177,7 @@ export class BookingService {
     return this.bookingRepository.getLearnerBookings(userId);
   }
 
-  async updateBookingStatus(bookingId: string, userId: string, status: BookingDecisionStatus, cancellationReason?: string, userRoles: string[] = []) {
+  async updateBookingStatus(bookingId: string, userId: string, status: BookingDecisionStatus, cancellationReason?: string, zoomLink?: string, userRoles: string[] = []) {
     // Validate status is a valid enum value
     if (!status || !VALID_BOOKING_STATUSES.includes(status)) {
       throw new Error(`Invalid booking status: ${status}. Must be one of: ${VALID_BOOKING_STATUSES.join(', ')}`);
@@ -197,12 +197,14 @@ export class BookingService {
         throw new Error('Only pending bookings can be confirmed');
       }
 
-      const updatedBooking = await this.bookingRepository.updateStatus(bookingId, 'CONFIRMED');
+      const updatedBooking = await this.bookingRepository.updateStatus(bookingId, 'CONFIRMED', undefined, zoomLink);
 
       await notificationService.createNotification({
         userId: booking.learnerId,
         title: 'Booking Confirmed',
-        message: `Your session on ${booking.startTime.toLocaleString()} has been confirmed by the tutor. Please complete payment to secure your slot.`,
+        message: zoomLink
+          ? `Your session on ${booking.startTime.toLocaleString()} has been confirmed by the tutor. Zoom link: ${zoomLink}`
+          : `Your session on ${booking.startTime.toLocaleString()} has been confirmed by the tutor. Please complete payment to secure your slot.`,
         type: NotificationType.BOOKING_CONFIRMED,
       });
 
@@ -235,6 +237,6 @@ export class BookingService {
       return { ...updatedBooking, suggestedSlots: suggestions };
     }
 
-    return this.bookingRepository.updateStatus(bookingId, status, cancellationReason);
+    return this.bookingRepository.updateStatus(bookingId, status, cancellationReason, zoomLink);
   }
 }

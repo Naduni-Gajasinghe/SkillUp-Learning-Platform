@@ -51,12 +51,13 @@ export class BookingController {
   async updateStatus(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const id = req.params.id as string;
-      const { status, cancellationReason } = req.body;
+      const { status, cancellationReason, zoomLink } = req.body;
       const booking = await bookingService.updateBookingStatus(
-        id, 
-        req.user!.userId, 
-        status, 
+        id,
+        req.user!.userId,
+        status,
         cancellationReason,
+        zoomLink,
         req.user!.roles
       );
       res.status(200).json({

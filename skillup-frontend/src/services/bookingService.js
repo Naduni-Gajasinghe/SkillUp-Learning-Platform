@@ -30,9 +30,10 @@ export const cancelBooking = async (id, reason) => {
   return data.data;
 };
 
-export const updateBookingStatus = async (id, status, cancellationReason) => {
+export const updateBookingStatus = async (id, status, cancellationReason, zoomLink) => {
   const payload = { status };
   if (cancellationReason) payload.cancellationReason = cancellationReason;
+  if (zoomLink) payload.zoomLink = zoomLink;
   const { data } = await apiClient.patch(`/bookings/${id}/status`, payload);
   return data.data;
 };

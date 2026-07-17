@@ -38,6 +38,7 @@ export default function TutorBookingsPage() {
   const [bookings, setBookings] = useState([]);
   const [rejectModal, setRejectModal] = useState({ open: false, bookingId: null });
   const [rejectReason, setRejectReason] = useState('');
+  const [confirmModal, setConfirmModal] = useState({ open: false, bookingId: null, zoomLink: '' });
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
@@ -55,7 +56,12 @@ export default function TutorBookingsPage() {
   }, []);
 
   const onAccept = async (bookingId) => {
-    await updateBookingStatus(bookingId, 'CONFIRMED');
+    setConfirmModal({ open: true, bookingId, zoomLink: '' });
+  };
+
+  const onConfirmAccept = async () => {
+    await updateBookingStatus(confirmModal.bookingId, 'CONFIRMED', undefined, confirmModal.zoomLink || undefined);
+    setConfirmModal({ open: false, bookingId: null, zoomLink: '' });
     await load();
   };
 
@@ -148,8 +154,8 @@ export default function TutorBookingsPage() {
             <div className="flex gap-2">
                 {booking.status === 'PENDING' && (
                 <>
-                    <button 
-                        onClick={() => onAccept(booking.id)}
+                  <button 
+                    onClick={() => onAccept(booking.id)}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition-all shadow-md shadow-emerald-100"
                     >
                         <Icons.Check />
@@ -284,6 +290,39 @@ export default function TutorBookingsPage() {
                 onClick={onConfirmReject}
               >
                 Confirm Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Confirmation Modal (optional Zoom link) */}
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="h-14 w-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
+                <Icons.Check />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900">Confirm Booking</h3>
+            <p className="mt-2 text-slate-600 leading-relaxed">Optionally add a Zoom link for this session. Learner will receive it with the confirmation.</p>
+            <input
+              type="url"
+              placeholder="https://zoom.us/j/xxxxxxxxxx"
+              value={confirmModal.zoomLink}
+              onChange={(e) => setConfirmModal((prev) => ({ ...prev, zoomLink: e.target.value }))}
+              className="mt-6 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <div className="mt-8 flex gap-3">
+              <button
+                className="flex-1 py-3 px-4 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                onClick={() => setConfirmModal({ open: false, bookingId: null, zoomLink: '' })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="flex-1 py-3 px-4 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100"
+                onClick={onConfirmAccept}
+              >
+                Confirm Booking
               </button>
             </div>
           </div>
