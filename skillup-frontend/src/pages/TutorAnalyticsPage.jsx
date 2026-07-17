@@ -37,6 +37,8 @@ export default function TutorAnalyticsPage() {
           <table className="min-w-full divide-y divide-slate-200 border border-slate-200 rounded-xl">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-600">
               <tr>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Learner</th>
                 <th className="px-4 py-3">Purpose</th>
                 <th className="px-4 py-3">Amount</th>
                 <th className="px-4 py-3">Tutor earnings</th>
@@ -47,6 +49,8 @@ export default function TutorAnalyticsPage() {
             <tbody className="divide-y divide-slate-200 bg-white">
               {payments.map((payment) => (
                 <tr key={payment.id}>
+                  <td className="px-4 py-3">{new Date(payment.createdAt).toLocaleString()}</td>
+                  <td className="px-4 py-3">{payment.user?.fullName || payment.user?.email || '-'}</td>
                   <td className="px-4 py-3">{payment.purpose}</td>
                   <td className="px-4 py-3">{payment.amount}</td>
                   <td className="px-4 py-3">{payment.tutorEarnings ?? '-'}</td>
@@ -56,7 +60,7 @@ export default function TutorAnalyticsPage() {
               ))}
               {payments.length === 0 && (
                 <tr>
-                  <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                  <td colSpan="7" className="px-4 py-8 text-center text-slate-500">
                     No payment history yet.
                   </td>
                 </tr>
