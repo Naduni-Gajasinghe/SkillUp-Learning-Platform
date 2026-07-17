@@ -32,16 +32,37 @@ export default function TutorAnalyticsPage() {
       </div>
 
       <Card>
-        <h2 className="text-lg font-semibold text-slate-900">Payment history (Mock module)</h2>
-        <div className="mt-3 space-y-2 text-sm text-slate-700">
-          {payments.map((payment) => (
-            <div key={payment.id} className="rounded-lg border border-slate-200 p-3">
-              <p className="font-medium text-slate-900">{payment.purpose}</p>
-              <p>Amount: {payment.amount}</p>
-              <p>Status: {payment.status}</p>
-            </div>
-          ))}
-          {payments.length === 0 ? <p className="text-slate-500">No payment history yet.</p> : null}
+        <h2 className="text-lg font-semibold text-slate-900">Payment history</h2>
+        <div className="mt-3 overflow-x-auto text-sm text-slate-700">
+          <table className="min-w-full divide-y divide-slate-200 border border-slate-200 rounded-xl">
+            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-600">
+              <tr>
+                <th className="px-4 py-3">Purpose</th>
+                <th className="px-4 py-3">Amount</th>
+                <th className="px-4 py-3">Tutor earnings</th>
+                <th className="px-4 py-3">Commission</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200 bg-white">
+              {payments.map((payment) => (
+                <tr key={payment.id}>
+                  <td className="px-4 py-3">{payment.purpose}</td>
+                  <td className="px-4 py-3">{payment.amount}</td>
+                  <td className="px-4 py-3">{payment.tutorEarnings ?? '-'}</td>
+                  <td className="px-4 py-3">{payment.commissionAmount ?? '-'}</td>
+                  <td className="px-4 py-3">{payment.status}</td>
+                </tr>
+              ))}
+              {payments.length === 0 && (
+                <tr>
+                  <td colSpan="5" className="px-4 py-8 text-center text-slate-500">
+                    No payment history yet.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </Card>
     </div>

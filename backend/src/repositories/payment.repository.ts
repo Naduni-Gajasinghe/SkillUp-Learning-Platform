@@ -30,6 +30,35 @@ export class PaymentRepository {
     });
   }
 
+  async getTutorPaymentHistory(tutorId: string) {
+    return prisma.payment.findMany({
+      where: {
+        status: 'COMPLETED',
+        purpose: 'TUTOR_SESSION',
+        booking: {
+          tutorId,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+          },
+        },
+        booking: {
+          select: {
+            id: true,
+            startTime: true,
+            endTime: true,
+          },
+        },
+      },
+    });
+  }
+
   async getPaymentById(id: string) {
     return prisma.payment.findUnique({ where: { id } });
   }

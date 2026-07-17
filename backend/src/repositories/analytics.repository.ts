@@ -8,23 +8,25 @@ export class AnalyticsRepository {
       prisma.lessonView.count({ where: { lesson: { tutorId } } }),
     ]);
 
-    const completedBookings = await prisma.booking.findMany({
-      where: { tutorId, status: 'COMPLETED' },
-      select: { startTime: true, endTime: true },
+    const completedPayments = await prisma.payment.findMany({
+      where: {
+        status: 'COMPLETED',
+        purpose: 'TUTOR_SESSION',
+        booking: {
+          tutorId,
+        },
+      },
+      select: {
+        amount: true,
+        commissionAmount: true,
+        tutorEarnings: true,
+      },
     });
 
-    const tutorProfile = await prisma.tutorProfile.findUnique({
-      where: { userId: tutorId },
-      select: { hourlyRate: true },
-    });
-
-    const hourlyRate = tutorProfile?.hourlyRate || 0;
-    let totalEarnings = 0;
-
-    completedBookings.forEach((booking) => {
-      const durationHours = (booking.endTime.getTime() - booking.startTime.getTime()) / (1000 * 60 * 60);
-      totalEarnings += durationHours * hourlyRate;
-    });
+    const totalEarnings = completedPayments.reduce(
+      (sum, payment) => sum + (payment.tutorEarnings || 0),
+      0,
+    );
 
     return {
       lessonCount,

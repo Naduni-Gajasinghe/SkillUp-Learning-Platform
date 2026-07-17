@@ -22,7 +22,7 @@ export class PaymentController {
 
   async getPaymentHistory(req: AuthRequest, res: Response, next: NextFunction) {
     try {
-      const history = await paymentService.getPaymentHistory(req.user!.userId);
+      const history = await paymentService.getPaymentHistory(req.user!.userId, req.user!.roles);
       res.status(200).json({ success: true, data: history });
     } catch (error: any) {
       next(error);

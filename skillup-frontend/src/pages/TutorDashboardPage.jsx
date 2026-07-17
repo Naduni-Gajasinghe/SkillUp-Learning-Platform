@@ -112,7 +112,7 @@ export default function TutorDashboardPage() {
             </div>
             <div>
               <p className="text-sm font-medium text-skill-dark/75">Total Earnings</p>
-              <p className="text-2xl font-bold text-skill-dark">${analytics?.totalEarnings || 0}</p>
+              <p className="text-2xl font-bold text-skill-dark">Rs.{analytics?.totalEarnings || 0}</p>
             </div>
           </div>
         </div>

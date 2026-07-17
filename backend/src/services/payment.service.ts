@@ -53,7 +53,7 @@ export class PaymentService {
         throw new Error('You can only pay for your own booking');
       }
 
-      if (!['PENDING', 'SCHEDULED'].includes(booking.status)) {
+      if (!['PENDING', 'CONFIRMED', 'SCHEDULED'].includes(booking.status)) {
         throw new Error('This booking is no longer payable');
       }
 
@@ -134,7 +134,11 @@ export class PaymentService {
     };
   }
 
-  async getPaymentHistory(userId: string) {
+  async getPaymentHistory(userId: string, roles: string[]) {
+    if (roles.includes('TUTOR')) {
+      return this.paymentRepository.getTutorPaymentHistory(userId);
+    }
+
     return this.paymentRepository.getPaymentHistory(userId);
   }
 
