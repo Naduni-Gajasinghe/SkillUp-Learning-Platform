@@ -8,7 +8,7 @@ export class AnalyticsRepository {
       prisma.lessonView.count({ where: { lesson: { tutorId } } }),
     ]);
 
-    const completedPayments = await prisma.payment.findMany({
+    const completedSessionPayments = await prisma.payment.findMany({
       where: {
         status: 'COMPLETED',
         purpose: 'TUTOR_SESSION',
@@ -23,8 +23,27 @@ export class AnalyticsRepository {
       },
     });
 
-    const totalEarnings = completedPayments.reduce(
-      (sum, payment) => sum + (payment.tutorEarnings || 0),
+    const tutorLessonIds = await prisma.lesson.findMany({
+      where: { tutorId },
+      select: { id: true },
+    });
+
+    const completedLessonPayments = tutorLessonIds.length > 0
+      ? await prisma.payment.findMany({
+          where: {
+            status: 'COMPLETED',
+            lessonId: { in: tutorLessonIds.map((lesson) => lesson.id) },
+          },
+          select: {
+            amount: true,
+            commissionAmount: true,
+            tutorEarnings: true,
+          },
+        })
+      : [];
+
+    const totalEarnings = [...completedSessionPayments, ...completedLessonPayments].reduce(
+      (sum, payment) => sum + (payment.tutorEarnings || payment.amount || 0),
       0,
     );
 
@@ -98,7 +117,6 @@ export class AnalyticsRepository {
       prisma.payment.findMany({
         where: {
           status: 'COMPLETED',
-          purpose: 'TUTOR_SESSION',
         },
         select: {
           amount: true,

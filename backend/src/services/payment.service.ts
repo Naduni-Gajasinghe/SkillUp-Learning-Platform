@@ -144,6 +144,36 @@ export class PaymentService {
           nextStep: 'You already have access to this premium lesson. No new payment was created.',
         };
       }
+
+      const paymentAmount = data.amount;
+      const commissionAmount = 0;
+      const tutorEarnings = paymentAmount;
+      const status = gateway === 'STRIPE' || gateway === 'MOCK' ? 'COMPLETED' : 'PENDING';
+
+      const payment = await this.paymentRepository.createPayment(
+        {
+          userId: data.userId,
+          amount: paymentAmount,
+          paymentMethod: `${gateway} / ${data.paymentMethod}`,
+          purpose: data.purpose,
+          gateway,
+          commissionRate: 0,
+          commissionAmount,
+          tutorEarnings,
+          bookingId: normalizedBookingId,
+          lessonId: normalizedLessonId,
+        },
+        status,
+      );
+
+      return {
+        ...payment,
+        gateway,
+        nextStep:
+          status === 'PENDING'
+            ? 'Payment created and waiting for gateway confirmation.'
+            : 'Payment completed successfully. Premium lesson access has been unlocked.',
+      };
     }
 
     const status = gateway === 'STRIPE' || gateway === 'MOCK' ? 'COMPLETED' : 'PENDING';

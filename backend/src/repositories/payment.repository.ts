@@ -31,7 +31,12 @@ export class PaymentRepository {
   }
 
   async getTutorPaymentHistory(tutorId: string) {
-    return prisma.payment.findMany({
+    const tutorLessonIds = await prisma.lesson.findMany({
+      where: { tutorId },
+      select: { id: true },
+    });
+
+    const completedSessionPayments = await prisma.payment.findMany({
       where: {
         status: 'COMPLETED',
         purpose: 'TUTOR_SESSION',
@@ -57,6 +62,30 @@ export class PaymentRepository {
         },
       },
     });
+
+    const lessonIds = tutorLessonIds.map((lesson) => lesson.id);
+    const completedLessonPayments = lessonIds.length > 0
+      ? await prisma.payment.findMany({
+        where: {
+          status: 'COMPLETED',
+          lessonId: { in: lessonIds },
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              fullName: true,
+              email: true,
+            },
+          },
+        },
+      })
+      : [];
+
+    return [...completedSessionPayments, ...completedLessonPayments].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
   }
 
   async getPaymentById(id: string) {
