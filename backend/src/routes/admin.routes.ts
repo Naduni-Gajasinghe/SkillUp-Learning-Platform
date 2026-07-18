@@ -19,6 +19,11 @@ const adminController = new AdminController();
 router.get('/tutors/pending', authenticate, authorizeRoles(['ADMIN']), adminController.getPendingTutorApplications);
 
 /**
+ * Get a tutor profile and analytics (Admin)
+ */
+router.get('/tutors/:id', authenticate, authorizeRoles(['ADMIN']), adminController.getTutorOverview);
+
+/**
  * @swagger
  * /api/admin/tutors/{id}/verification:
  *   patch:

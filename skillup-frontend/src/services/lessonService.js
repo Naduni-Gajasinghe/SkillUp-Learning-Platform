@@ -14,6 +14,17 @@ export const fetchLessonById = async (id) => {
   return data.data;
 };
 
+export const unlockLessonAccess = async (lessonId, amount = 10) => {
+  const { data } = await apiClient.post('/payments', {
+    lessonId,
+    amount,
+    paymentMethod: 'CARD',
+    gateway: 'STRIPE',
+    purpose: `LESSON_ACCESS:${lessonId}`,
+  });
+  return data.data;
+};
+
 export const createLesson = async (formData) => {
   const { data } = await apiClient.post('/lessons', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

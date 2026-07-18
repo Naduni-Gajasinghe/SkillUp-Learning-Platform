@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { completeLesson, trackLessonView } from '../services/learnerService';
-import { fetchLessonById } from '../services/lessonService';
-import { processPayment } from '../services/tutorService';
+import { fetchLessonById, unlockLessonAccess } from '../services/lessonService';
 
 const Icons = {
   ChevronLeft: () => (
@@ -56,16 +55,10 @@ export default function LessonDetailsPage() {
   const unlockPremiumLesson = async () => {
     setUnlockMessage('Connecting to payment gateway...');
     try {
-        await processPayment({
-          lessonId: id,
-          amount: Number(unlockAmount),
-          paymentMethod: 'CARD',
-          gateway: 'STRIPE',
-          purpose: `LESSON_ACCESS:${id}`,
-        });
+        await unlockLessonAccess(id, Number(unlockAmount));
         const lessonData = await fetchLessonById(id);
         setLesson(lessonData);
-        setUnlockMessage('Payment successful! Access granted.');
+        setUnlockMessage(lessonData?.canAccess ? 'Payment successful! Access granted.' : 'Payment completed. You can now open the lesson content.');
     } catch (err) {
         setUnlockMessage('Payment failed. Please try again.');
     }

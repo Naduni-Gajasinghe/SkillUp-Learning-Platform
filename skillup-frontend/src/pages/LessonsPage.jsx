@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import { completeLesson, trackLessonView } from '../services/learnerService';
-import { fetchCategories, fetchLessons } from '../services/lessonService';
+import { fetchCategories, fetchLessonById, fetchLessons, unlockLessonAccess } from '../services/lessonService';
 
 const LockIcon = ({ className = 'h-4 w-4' }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
@@ -18,10 +18,12 @@ const BookOpenIcon = ({ className = 'h-4 w-4' }) => (
 );
 
 export default function LessonsPage() {
+  const navigate = useNavigate();
   const [lessons, setLessons] = useState([]);
   const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({ search: '', categoryId: '' });
   const [loading, setLoading] = useState(true);
+  const [paymentModal, setPaymentModal] = useState({ open: false, lesson: null, amount: '10' });
 
   useEffect(() => {
     const load = async () => {
@@ -73,6 +75,38 @@ export default function LessonsPage() {
       setLessons(lessonData);
     } catch (error) {
       console.error('Failed to complete lesson:', error);
+    }
+  };
+
+  const openPaymentModal = (lesson) => {
+    setPaymentModal({ open: true, lesson, amount: lesson.price ? String(lesson.price) : '10' });
+  };
+
+  const onUnlockPremiumLesson = async () => {
+    if (!paymentModal.lesson) return;
+
+    const lessonId = paymentModal.lesson.id;
+
+    try {
+      await unlockLessonAccess(lessonId, Number(paymentModal.amount || 10));
+
+      const [lessonData, refreshedLesson] = await Promise.all([
+        fetchLessons(filters),
+        fetchLessonById(lessonId),
+      ]);
+
+      setLessons(lessonData);
+
+      setPaymentModal({ open: false, lesson: null, amount: '10' });
+
+      if (refreshedLesson?.canAccess) {
+        navigate(`/learner/lessons/${lessonId}`);
+      } else {
+        window.alert('Payment completed, but the lesson was not unlocked.');
+      }
+    } catch (error) {
+      console.error('Failed to unlock premium lesson:', error);
+      window.alert('Unable to unlock this lesson right now.');
     }
   };
 
@@ -155,11 +189,28 @@ export default function LessonsPage() {
                 </div>
 
                 <div className="mt-8 flex items-center gap-3">
-                  <Link to={`/learner/lessons/${lesson.id}`} className="flex-1" onClick={() => onTrackView(lesson.id)}>
-                    <button className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98]">
-                      View Lesson
-                    </button>
-                  </Link>
+                  {lesson.isPremium ? (
+                    lesson.canAccess ? (
+                      <Link to={`/learner/lessons/${lesson.id}`} className="flex-1" onClick={() => onTrackView(lesson.id)}>
+                        <button className="w-full rounded-xl bg-emerald-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-emerald-500 active:scale-[0.98]">
+                          Open Lesson
+                        </button>
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => openPaymentModal(lesson)}
+                        className="flex-1 rounded-xl bg-indigo-600 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-500 active:scale-[0.98]"
+                      >
+                        Unlock Premium
+                      </button>
+                    )
+                  ) : (
+                    <Link to={`/learner/lessons/${lesson.id}`} className="flex-1" onClick={() => onTrackView(lesson.id)}>
+                      <button className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98]">
+                        View Lesson
+                      </button>
+                    </Link>
+                  )}
                   <button 
                     onClick={() => onComplete(lesson.id)}
                     disabled={lesson.status === 'COMPLETED'}
@@ -192,6 +243,52 @@ export default function LessonsPage() {
             </div>
           )}
         </>
+      )}
+
+      {paymentModal.open && paymentModal.lesson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+            <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+              <LockIcon className="h-6 w-6" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900">Pay to unlock this lesson</h3>
+            <p className="mt-2 text-sm leading-relaxed text-slate-600">
+              This premium lesson requires a one-time payment before its content becomes available.
+            </p>
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-slate-700">Lesson</p>
+              <p className="mt-1 text-lg font-bold text-slate-900">{paymentModal.lesson.title}</p>
+            </div>
+
+            <label className="mt-6 block text-sm font-semibold text-slate-700">
+              Amount (LKR)
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                value={paymentModal.amount}
+                onChange={(e) => setPaymentModal((prev) => ({ ...prev, amount: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none ring-indigo-500/20 transition-all focus:border-indigo-500 focus:ring-4"
+              />
+            </label>
+
+            <div className="mt-8 flex gap-3">
+              <button
+                onClick={() => setPaymentModal({ open: false, lesson: null, amount: '10' })}
+                className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 transition-all hover:bg-slate-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={onUnlockPremiumLesson}
+                className="flex-1 rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-indigo-500"
+              >
+                Pay & Unlock
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -36,7 +36,7 @@ export default function HomePage() {
           </div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-8 text-white leading-tight">
             Master Any Skill with <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a9e0cb] to-[#4fb28f]">Personalized AI Mentoring.</span>
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a9e0cb] to-[#4fb28f]">SkillUP</span>
           </h1>
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-[#d8e2dd] mb-10 leading-relaxed">
             SkillUp connects ambitious learners with expert tutors and cutting-edge AI tools to accelerate your career and personal growth.

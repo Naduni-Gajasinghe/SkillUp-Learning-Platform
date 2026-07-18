@@ -1,6 +1,22 @@
 import { PaymentRepository } from '../repositories/payment.repository';
 import { BookingRepository } from '../repositories/booking.repository';
 import { TutorRepository } from '../repositories/tutor.repository';
+import prisma from '../config/prisma';
+
+export function resolvePaymentIntent(input: { purpose?: string; lessonId?: string }) {
+  const purpose = input.purpose?.trim().toUpperCase();
+  const isLessonPayment = Boolean(
+    purpose?.startsWith('LESSON_ACCESS:') ||
+    purpose === 'LESSON_PURCHASE' ||
+    purpose === 'LESSON_ACCESS' ||
+    input.lessonId
+  );
+
+  return {
+    isLessonPayment,
+    requiresLessonId: isLessonPayment && !input.lessonId,
+  };
+}
 
 export class PaymentService {
   private paymentRepository: PaymentRepository;
@@ -34,6 +50,10 @@ export class PaymentService {
     const normalizedBookingId = data.bookingId?.trim() || undefined;
     const normalizedLessonId = data.lessonId?.trim() || undefined;
     const gateway = (data.gateway || 'STRIPE').toUpperCase();
+    const paymentIntent = resolvePaymentIntent({
+      purpose: data.purpose,
+      lessonId: normalizedLessonId,
+    });
 
     if (!this.supportedGateways.includes(gateway)) {
       throw new Error(`Unsupported payment gateway. Choose one of: ${this.supportedGateways.join(', ')}`);
@@ -106,6 +126,26 @@ export class PaymentService {
       };
     }
 
+    if (paymentIntent.isLessonPayment) {
+      if (!normalizedLessonId) {
+        throw new Error('Lesson is required for lesson access payments');
+      }
+
+      const lesson = await prisma.lesson.findUnique({ where: { id: normalizedLessonId } });
+      if (!lesson) {
+        throw new Error('Lesson not found');
+      }
+
+      const existingPayment = await this.paymentRepository.findCompletedByLessonId(normalizedLessonId, data.userId);
+      if (existingPayment) {
+        return {
+          ...existingPayment,
+          gateway,
+          nextStep: 'You already have access to this premium lesson. No new payment was created.',
+        };
+      }
+    }
+
     const status = gateway === 'STRIPE' || gateway === 'MOCK' ? 'COMPLETED' : 'PENDING';
 
     const payment = await this.paymentRepository.createPayment(
@@ -130,7 +170,9 @@ export class PaymentService {
       nextStep:
         status === 'PENDING'
           ? 'Payment created and waiting for gateway confirmation.'
-          : 'Payment completed successfully.',
+          : paymentIntent.isLessonPayment
+            ? 'Payment completed successfully. Premium lesson access has been unlocked.'
+            : 'Payment completed successfully.',
     };
   }
 

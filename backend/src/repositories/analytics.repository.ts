@@ -85,7 +85,7 @@ export class AnalyticsRepository {
   }
 
   async getPlatformStats() {
-    const [userCount, lessonCount, bookingStats, tutorProfileStats] = await Promise.all([
+    const [userCount, lessonCount, bookingStats, tutorProfileStats, completedPayments] = await Promise.all([
       prisma.user.count(),
       prisma.lesson.count(),
       prisma.booking.groupBy({
@@ -95,13 +95,28 @@ export class AnalyticsRepository {
       prisma.tutorProfile.aggregate({
         _avg: { hourlyRate: true },
       }),
+      prisma.payment.findMany({
+        where: {
+          status: 'COMPLETED',
+          purpose: 'TUTOR_SESSION',
+        },
+        select: {
+          amount: true,
+          commissionAmount: true,
+        },
+      }),
     ]);
+
+    const totalIncome = completedPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    const totalCommission = completedPayments.reduce((sum, payment) => sum + (payment.commissionAmount || 0), 0);
 
     return {
       totalUsers: userCount,
       totalLessons: lessonCount,
       bookingsByStatus: bookingStats,
       averageTutorRate: tutorProfileStats._avg.hourlyRate,
+      totalIncome: Math.round(totalIncome * 100) / 100,
+      totalCommission: Math.round(totalCommission * 100) / 100,
     };
   }
 }

@@ -77,6 +77,17 @@ export class PaymentRepository {
     });
   }
 
+  async findCompletedByLessonId(lessonId: string, userId: string) {
+    return prisma.payment.findFirst({
+      where: {
+        lessonId,
+        userId,
+        status: 'COMPLETED',
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async updatePaymentStatus(id: string, status: PaymentStatus) {
     return prisma.payment.update({
       where: { id },

@@ -24,3 +24,8 @@ export const updatePaymentStatus = async (paymentId, status) => {
   const { data } = await apiClient.patch(`/payments/${paymentId}/status`, { status });
   return data.data;
 };
+
+export const fetchTutorOverview = async (userId) => {
+  const { data } = await apiClient.get(`/admin/tutors/${userId}`);
+  return data.data;
+};

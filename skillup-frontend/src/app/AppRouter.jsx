@@ -20,6 +20,7 @@ import TutorBookingsPage from '../pages/TutorBookingsPage';
 import TutorReviewsPage from '../pages/TutorReviewsPage';
 import TutorAnalyticsPage from '../pages/TutorAnalyticsPage';
 import AdminDashboardPage from '../pages/AdminDashboardPage';
+import AdminTutorPage from '../pages/AdminTutorPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import ProtectedRoute from '../routes/ProtectedRoute';
 import RoleRedirect from '../routes/RoleRedirect';
@@ -64,6 +65,8 @@ export default function AppRouter() {
       <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
         <Route element={<DashboardLayout role="admin" />}>
           <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+          <Route path="/admin/tutor-analytics" element={<TutorAnalyticsPage />} />
+          <Route path="/admin/tutors/:id" element={<AdminTutorPage />} />
         </Route>
       </Route>
 

@@ -1,5 +1,30 @@
 import { LessonRepository } from '../repositories/lesson.repository';
 
+export function buildLessonAccessMetadata(lesson: { isPremium?: boolean }, userId?: string, hasAccess = false) {
+  const accessState = resolveLessonAccessState(lesson, userId, hasAccess);
+
+  return {
+    ...accessState,
+    message: accessState.canAccess
+      ? undefined
+      : userId
+        ? 'Premium content. Please pay to access.'
+        : 'Premium content. Please login and pay to access.',
+  };
+}
+
+export function resolveLessonAccessState(lesson: { isPremium?: boolean }, userId?: string, hasAccess = false) {
+  if (!lesson.isPremium) {
+    return { accessRestricted: false, canAccess: true };
+  }
+
+  if (!userId) {
+    return { accessRestricted: true, canAccess: false };
+  }
+
+  return { accessRestricted: !hasAccess, canAccess: hasAccess };
+}
+
 export class LessonService {
   private lessonRepository: LessonRepository;
 
@@ -25,7 +50,7 @@ export class LessonService {
   async getAllLessons(filters: any, userId?: string) {
     const lessons = await this.lessonRepository.findAll(filters, userId);
     
-    return lessons.map(lesson => {
+    return Promise.all(lessons.map(async (lesson) => {
       const { contentUrl, learnerProgress, views, ...lessonData } = lesson as any;
       
       let status = 'OPEN';
@@ -38,11 +63,16 @@ export class LessonService {
         status = 'INPROGRESS';
       }
 
+      const accessMetadata = lesson.isPremium && userId
+        ? buildLessonAccessMetadata(lesson, userId, await this.lessonRepository.checkLessonAccess(lesson.id, userId))
+        : buildLessonAccessMetadata(lesson, userId, false);
+
       return {
         ...lessonData,
-        status
+        status,
+        ...accessMetadata,
       };
-    });
+    }));
   }
 
   async getLessonById(id: string, userId?: string) {
@@ -67,22 +97,26 @@ export class LessonService {
       status
     };
 
-    // If it's a free lesson, anyone can see it
     if (!lesson.isPremium) return enhancedLesson;
 
-    // If it's premium, check access
-    if (!userId) {
+    const hasAccess = userId ? await this.lessonRepository.checkLessonAccess(id, userId) : false;
+    const accessState = resolveLessonAccessState(lesson, userId, hasAccess);
+
+    if (!accessState.canAccess) {
       const { contentUrl: _, ...lessonWithoutContent } = enhancedLesson;
-      return { ...lessonWithoutContent, accessRestricted: true, message: 'Premium content. Please login and pay to access.' };
+      return {
+        ...lessonWithoutContent,
+        accessRestricted: true,
+        canAccess: false,
+        message: userId ? 'Premium content. Please pay to access.' : 'Premium content. Please login and pay to access.',
+      };
     }
 
-    const hasAccess = await this.lessonRepository.checkLessonAccess(id, userId);
-    if (!hasAccess) {
-      const { contentUrl: _, ...lessonWithoutContent } = enhancedLesson;
-      return { ...lessonWithoutContent, accessRestricted: true, message: 'Premium content. Please pay to access.' };
-    }
-
-    return enhancedLesson;
+    return {
+      ...enhancedLesson,
+      accessRestricted: false,
+      canAccess: true,
+    };
   }
 
   async updateLesson(id: string, data: any, userId: string) {

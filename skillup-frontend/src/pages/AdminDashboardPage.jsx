@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import StatCard from '../components/ui/StatCard';
@@ -17,6 +18,7 @@ const paymentActions = [
 ];
 
 export default function AdminDashboardPage() {
+  const navigate = useNavigate();
   const [platformStats, setPlatformStats] = useState(null);
   const [workflow, setWorkflow] = useState(null);
   const [pendingTutors, setPendingTutors] = useState([]);
@@ -60,10 +62,11 @@ export default function AdminDashboardPage() {
         <p className="text-sm text-skill-dark/80">Monitor tutor approvals, platform health, and payment gateway activity.</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Users" value={platformStats?.totalUsers || 0} tone="cyan" />
         <StatCard label="Lessons" value={platformStats?.totalLessons || 0} tone="amber" />
-        <StatCard label="Avg tutor rate" value={platformStats?.averageTutorRate || 0} tone="emerald" />
+        <StatCard label="Total income" value={platformStats?.totalIncome || 0} tone="emerald" />
+        <StatCard label="Total commission" value={platformStats?.totalCommission || 0} tone="violet" />
         <StatCard label="Pending payments" value={paymentSummary?.pendingPayments || 0} tone="rose" />
       </div>
 
@@ -89,6 +92,7 @@ export default function AdminDashboardPage() {
                   <p className="text-xs uppercase tracking-wide text-skill-dark/70">Status: {tutor.verificationStatus}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  <Button onClick={() => navigate(`/admin/tutors/${tutor.userId}`)}>View</Button>
                   <Button onClick={() => onTutorAction(tutor.userId, 'APPROVED')}>Approve</Button>
                   <Button variant="danger" onClick={() => onTutorAction(tutor.userId, 'REJECTED')}>
                     Reject
